@@ -51,7 +51,7 @@
         }
         .stagger-fade-in { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
         .btn-press { transition: transform 0.1s ease-in-out; touch-action: manipulation; }
-        .btn-press:active { transform: scale(0.94); }
+        .btn-press:active { transform: scale(0.95); }
         .product-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .product-card:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 18px -6px rgba(26, 51, 38, 0.12); }
     </style>
@@ -61,59 +61,59 @@
     <header class="bg-agave shadow-lg sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center text-white">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-corn rounded-xl flex items-center justify-center text-terra shadow-sm overflow-hidden p-1 border border-white/20">
-                    <img src="img/logopataq.png" alt="PA'TAQUEARTE Logo" class="w-full h-full object-contain" onerror="this.replaceWith(document.createElement('i')); this.className='fa-solid fa-fire text-lg';">
+                <div class="w-10 h-10 bg-corn rounded-xl flex items-center justify-center text-terra shadow-sm overflow-hidden p-1 border border-white/20">
+                    <img src="img/logopataq.png" alt="PA'TAQUEARTE Logo" class="w-full h-full object-contain" onerror="this.replaceWith(document.createElement('i')); this.className='fa-solid fa-fire text-base';">
                 </div>
                 <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">PA'TAQUEARTE</h1>
             </div>
-            <button onclick="toggleCart()" class="relative p-2.5 text-white hover:text-corn transition-colors focus:outline-none btn-press group flex items-center gap-2 bg-white/10 rounded-xl px-3.5 py-2 border border-white/15" id="cart-btn" aria-label="Abrir carrito">
-                <i class="fa-solid fa-cart-shopping text-base group-hover:scale-110 transition-transform"></i>
-                <span class="text-xs font-semibold hidden sm:inline">Mi Orden</span>
+            <button onclick="toggleCart()" class="relative p-2 text-white hover:text-corn transition-colors focus:outline-none btn-press group flex items-center gap-1.5 bg-white/10 rounded-xl px-3 py-1.5 border border-white/15" id="cart-btn" aria-label="Abrir carrito">
+                <i class="fa-solid fa-cart-shopping text-sm group-hover:scale-110 transition-transform"></i>
+                <span class="text-xs font-semibold hidden sm:inline">Orden</span>
                 <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-terra text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-agave transform scale-0 transition-transform duration-300">0</span>
             </button>
         </div>
     </header>
 
-    <div class="bg-agave text-white py-12 px-4 text-center border-b-[5px] border-terra relative overflow-hidden">
+    <div class="bg-agave text-white py-10 px-4 text-center border-b-[5px] border-terra relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 flex justify-center items-center pointer-events-none">
             <i class="fa-solid fa-pepper-hot text-9xl transform -rotate-12 translate-x-1/2"></i>
         </div>
 
         <div class="relative z-10 stagger-fade-in" style="animation-delay: 0.1s;">
-            <h2 class="text-3xl md:text-4xl font-extrabold mb-3 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
-            <p class="text-corn max-w-xl mx-auto text-base md:text-lg font-medium opacity-90">Selecciona tus favoritos, arma tu orden y pídela directo a nuestro WhatsApp. ¡El sabor de verdad!</p>
+            <h2 class="text-3xl md:text-4xl font-extrabold mb-2.5 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
+            <p class="text-corn max-w-xl mx-auto text-sm md:text-base font-medium opacity-90">Selecciona tus favoritos, arma tu orden y pídela directo a nuestro WhatsApp. ¡El sabor de verdad!</p>
 
-            <div class="mt-6 inline-flex flex-col items-center gap-1 bg-white/10 border border-white/20 rounded-2xl px-5 py-3 shadow-sm">
-                <div class="flex items-center gap-2 font-bold text-base">
+            <div class="mt-5 inline-flex flex-col items-center gap-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 shadow-sm">
+                <div class="flex items-center gap-2 font-bold text-sm md:text-base">
                     <span id="status-dot" class="w-2.5 h-2.5 rounded-full inline-block" style="background:#9ca3af"></span>
                     <span id="status-text">Revisando horario…</span>
                 </div>
-                <p id="status-sub" class="text-xs md:text-sm text-corn/90"></p>
-                <p class="text-xs text-corn/70 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
+                <p id="status-sub" class="text-xs text-corn/90"></p>
+                <p class="text-[11px] text-corn/70 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
             </div>
         </div>
     </div>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 relative">
-        <div id="menu-container" class="space-y-12"></div>
+    <main class="max-w-4xl mx-auto px-4 py-6 relative">
+        <div id="menu-container" class="space-y-10"></div>
     </main>
 
     <div id="cart-overlay" onclick="toggleCart()" class="overlay fixed inset-0 bg-charcoal/80 z-50 backdrop-blur-sm"></div>
 
     <div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full max-w-md bg-corn z-50 shadow-2xl flex flex-col">
         <div class="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white shadow-sm z-10">
-            <h2 class="text-lg font-bold text-charcoal flex items-center gap-2">
+            <h2 class="text-base font-bold text-charcoal flex items-center gap-2">
                 <i class="fa-solid fa-basket-shopping text-terra"></i> Tu Orden
             </h2>
-            <button onclick="toggleCart()" class="p-2 text-charcoal-light hover:text-terra hover:bg-red-50 rounded-full transition focus:outline-none btn-press flex items-center justify-center w-9 h-9" aria-label="Cerrar carrito">
-                <i class="fa-solid fa-xmark text-lg"></i>
+            <button onclick="toggleCart()" class="p-2 text-charcoal-light hover:text-terra hover:bg-red-50 rounded-full transition focus:outline-none btn-press flex items-center justify-center w-8 h-8" aria-label="Cerrar carrito">
+                <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
 
-        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar bg-corn relative"></div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-2.5 no-scrollbar bg-corn relative"></div>
 
         <div class="p-4 border-t border-gray-200/50 bg-white shadow-[0_-15px_30px_-10px_rgba(26,51,38,0.1)] z-10 relative">
-            <div id="cart-warning" class="hidden text-terra text-xs font-semibold mb-2.5 text-center bg-orange-50 p-2.5 rounded-xl border border-orange-100">
+            <div id="cart-warning" class="hidden text-terra text-xs font-semibold mb-2 text-center bg-orange-50 p-2 rounded-xl border border-orange-100">
                 <i class="fa-solid fa-circle-exclamation mr-1"></i> Agrega al menos un producto.
             </div>
 
@@ -122,27 +122,27 @@
                 <p class="text-charcoal-light text-xs mb-2">Elige cuándo pasas por él. Se confirma por WhatsApp.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="font-semibold text-charcoal-light">Día
-                        <select id="reserve-day" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2.5 py-2 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
+                        <select id="reserve-day" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
                     </label>
                     <label class="font-semibold text-charcoal-light">Hora
-                        <select id="reserve-time" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2.5 py-2 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
+                        <select id="reserve-time" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
                     </label>
                 </div>
             </div>
 
-            <div class="flex justify-between items-end mb-4">
-                <span class="text-charcoal-light font-bold text-sm">Total a pagar:</span>
-                <span id="cart-total" class="text-2xl font-extrabold text-terra tracking-tight">$0.00</span>
+            <div class="flex justify-between items-end mb-3">
+                <span class="text-charcoal-light font-bold text-xs">Total a pagar:</span>
+                <span id="cart-total" class="text-xl font-extrabold text-terra tracking-tight">$0.00</span>
             </div>
-            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-4 rounded-xl shadow-md flex justify-center items-center gap-2 transition-colors focus:outline-none text-sm btn-press">
-                <i class="fa-brands fa-whatsapp text-lg"></i>
+            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-2.5 px-4 rounded-xl shadow-md flex justify-center items-center gap-2 transition-colors focus:outline-none text-xs btn-press">
+                <i class="fa-brands fa-whatsapp text-base"></i>
                 <span id="send-label">Pedir por WhatsApp</span>
             </button>
         </div>
     </div>
 
-    <div id="toast-notification" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-agave text-white px-5 py-2.5 rounded-full shadow-xl z-50 flex items-center gap-2.5 border border-agave-hover text-sm">
-        <i class="fa-solid fa-check-circle text-terra text-base"></i>
+    <div id="toast-notification" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-agave text-white px-4 py-2 rounded-full shadow-xl z-50 flex items-center gap-2 border border-agave-hover text-xs">
+        <i class="fa-solid fa-check-circle text-terra text-sm"></i>
         <span id="toast-message" class="font-medium">Notificación</span>
     </div>
 
@@ -232,7 +232,7 @@
 
         const IMG_PATH = 'img/';
         const IMG_EXT = '.jpg';
-        const imgSrc = name => IMG_PATH + encodeURIComponent(name) + IMG_EXT;
+        const imgSrc = name => IMG_PATH + name + IMG_EXT;
 
         const TACO_IMG = {
             pastor: 'Pastor',
@@ -308,24 +308,26 @@
             menuData.forEach((section, index) => {
                 const sectionHTML = document.createElement('div');
                 sectionHTML.className = `stagger-fade-in`;
-                sectionHTML.style.animationDelay = `${0.08 + (index * 0.08)}s`;
+                sectionHTML.style.animationDelay = `${0.06 + (index * 0.06)}s`;
 
                 let itemsHTML = section.items.map(item => `
-                    <div class="product-card bg-white rounded-xl premium-shadow p-3 flex gap-3 h-full border border-gray-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-14 h-14 bg-corn rounded-bl-[80px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
-                        <div class="${item.image ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-10 h-10 text-xl'} bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
-                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.parentNode.classList.add('text-2xl');this.replaceWith('${item.emoji}')">` : item.emoji}
+                    <div class="product-card bg-white rounded-xl premium-shadow p-2.5 flex gap-2.5 h-full border border-gray-100 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-12 h-12 bg-corn rounded-bl-[60px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
+                        
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
+                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'text-2xl', innerText: '${item.emoji}'}))">` : `<span class="text-2xl">${item.emoji}</span>`}
                         </div>
-                        <div class="flex-1 flex flex-col justify-between z-10">
+
+                        <div class="flex-1 flex flex-col justify-between z-10 min-w-0">
                             <div>
-                                <h4 class="font-bold text-charcoal text-xs sm:text-sm leading-snug">${item.name}</h4>
-                                ${item.desc ? `<p class="text-[11px] text-charcoal-light mt-1 leading-relaxed bg-corn p-1.5 rounded border border-gray-100">${item.desc}</p>` : ''}
+                                <h4 class="font-bold text-charcoal text-xs sm:text-sm leading-tight truncate">${item.name}</h4>
+                                ${item.desc ? `<p class="text-[10px] text-charcoal-light mt-0.5 leading-snug bg-corn p-1 rounded border border-gray-100">${item.desc}</p>` : ''}
                             </div>
-                            <div class="flex justify-between items-center mt-2 pt-1.5 border-t border-gray-100/60">
-                                <span class="font-extrabold text-terra text-sm sm:text-base">$${item.price.toFixed(2)}</span>
-                                <div class="flex items-center gap-2" id="controls-${item.id}">
-                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1 rounded-full text-[11px] transition-colors shadow-sm focus:outline-none flex items-center gap-1">
-                                        <i class="fa-solid fa-plus text-[10px]"></i> Agregar
+                            <div class="flex justify-between items-center mt-1.5 pt-1 border-t border-gray-100/60">
+                                <span class="font-extrabold text-terra text-xs sm:text-sm">$${item.price.toFixed(2)}</span>
+                                <div class="flex items-center gap-1.5" id="controls-${item.id}">
+                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2.5 py-1 rounded-full text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1">
+                                        <i class="fa-solid fa-plus text-[9px]"></i> Agregar
                                     </button>
                                 </div>
                             </div>
@@ -334,11 +336,11 @@
                 `).join('');
 
                 sectionHTML.innerHTML = `
-                    <h3 class="text-xl font-black text-agave mb-4 flex items-center gap-2.5 uppercase tracking-wide border-b border-agave/10 pb-2">
-                        <span class="bg-terra w-1.5 h-6 rounded-full inline-block"></span>
+                    <h3 class="text-lg sm:text-xl font-black text-agave mb-3.5 flex items-center gap-2 uppercase tracking-wide border-b border-agave/10 pb-1.5">
+                        <span class="bg-terra w-1.5 h-5 rounded-full inline-block"></span>
                         ${section.category}
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         ${itemsHTML}
                     </div>
                 `;
@@ -397,28 +399,28 @@
             const cartItemsContainer = document.getElementById('cart-items');
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = `
-                    <div class="text-center py-12 flex flex-col items-center justify-center h-full opacity-60">
-                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-3 premium-shadow border border-gray-100">
-                            <i class="fa-solid fa-basket-shopping text-3xl text-gray-300"></i>
+                    <div class="text-center py-10 flex flex-col items-center justify-center h-full opacity-60">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2.5 premium-shadow border border-gray-100">
+                            <i class="fa-solid fa-basket-shopping text-2xl text-gray-300"></i>
                         </div>
-                        <p class="font-bold text-charcoal text-base">Tu orden está vacía</p>
-                        <p class="text-xs mt-0.5 text-charcoal-light">Anímate a probar nuestros deliciosos tacos</p>
+                        <p class="font-bold text-charcoal text-sm">Tu orden está vacía</p>
+                        <p class="text-[11px] mt-0.5 text-charcoal-light">Anímate a probar nuestros deliciosos tacos</p>
                     </div>
                 `;
             } else {
                 cartItemsContainer.innerHTML = cart.map(item => `
-                    <div class="bg-white p-3 rounded-xl premium-shadow border border-gray-100 flex justify-between items-center transition-all">
+                    <div class="bg-white p-2.5 rounded-xl premium-shadow border border-gray-100 flex justify-between items-center transition-all">
                         <div class="flex-1 pr-2">
                             <h5 class="font-bold text-charcoal text-xs leading-tight">${item.name}</h5>
                             <p class="text-terra font-extrabold mt-0.5 text-xs">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
-                        <div class="flex items-center gap-1.5 bg-corn rounded-lg p-1 border border-gray-200">
-                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded transition focus:outline-none" aria-label="Menos">
-                                <i class="fa-solid fa-minus text-[10px]"></i>
+                        <div class="flex items-center gap-1 bg-corn rounded-lg p-0.5 border border-gray-200">
+                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded text-xs transition focus:outline-none" aria-label="Menos">
+                                <i class="fa-solid fa-minus text-[9px]"></i>
                             </button>
-                            <span class="w-5 text-center font-bold text-xs text-charcoal">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded transition focus:outline-none" aria-label="Más">
-                                <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span class="w-4 text-center font-bold text-xs text-charcoal">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded text-xs transition focus:outline-none" aria-label="Más">
+                                <i class="fa-solid fa-plus text-[9px]"></i>
                             </button>
                         </div>
                     </div>
@@ -439,20 +441,20 @@
 
                     if (cartItem) {
                         controlsDiv.innerHTML = `
-                            <div class="flex items-center gap-1 bg-corn rounded-full px-1.5 py-0.5 border border-gray-200 premium-shadow">
-                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-6 h-6 bg-white rounded-full flex items-center justify-center text-charcoal-light hover:text-terra transition shadow-sm focus:outline-none" aria-label="Menos">
-                                    <i class="fa-solid fa-minus text-[10px]"></i>
+                            <div class="flex items-center gap-1 bg-corn rounded-full px-1 py-0.5 border border-gray-200 premium-shadow">
+                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-5 h-5 bg-white rounded-full flex items-center justify-center text-charcoal-light hover:text-terra transition shadow-sm focus:outline-none" aria-label="Menos">
+                                    <i class="fa-solid fa-minus text-[9px]"></i>
                                 </button>
-                                <span class="font-bold w-5 text-center text-charcoal text-xs">${cartItem.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-6 h-6 bg-terra text-white rounded-full flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none" aria-label="Más">
-                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span class="font-bold w-4 text-center text-charcoal text-xs">${cartItem.quantity}</span>
+                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-5 h-5 bg-terra text-white rounded-full flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none" aria-label="Más">
+                                    <i class="fa-solid fa-plus text-[9px]"></i>
                                 </button>
                             </div>
                         `;
                     } else {
                         controlsDiv.innerHTML = `
-                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1 rounded-full text-[11px] transition-colors shadow-sm focus:outline-none flex items-center gap-1">
-                                <i class="fa-solid fa-plus text-[10px]"></i> Agregar
+                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2.5 py-1 rounded-full text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[9px]"></i> Agregar
                             </button>
                         `;
                     }
