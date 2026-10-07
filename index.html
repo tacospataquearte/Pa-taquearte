@@ -1,17 +1,14 @@
-
-
-Index · HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PA'TAQUEARTE - Menú Interactivo</title>
- 
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
- 
+
     <script>
         tailwind.config = {
             theme: {
@@ -30,7 +27,7 @@ Index · HTML
             }
         }
     </script>
- 
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #fdf8e7; color: #2d2d2d; overflow-x: hidden; }
         .cart-sidebar { transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -44,125 +41,121 @@ Index · HTML
         .premium-shadow { box-shadow: 0 4px 6px -1px rgba(26, 51, 38, 0.08), 0 2px 4px -1px rgba(26, 51, 38, 0.04); }
         @keyframes popBounce {
             0% { transform: scale(1); }
-            50% { transform: scale(1.4) rotate(-5deg); }
+            50% { transform: scale(1.3) rotate(-3deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
-        .animate-pop { animation: popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .animate-pop { animation: popBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .stagger-fade-in { opacity: 0; animation: fadeInUp 0.7s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
-        .btn-press { transition: transform 0.1s ease-in-out; }
-        .btn-press:active { transform: scale(0.92); }
+        .stagger-fade-in { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
+        .btn-press { transition: transform 0.1s ease-in-out; touch-action: manipulation; }
+        .btn-press:active { transform: scale(0.94); }
         .product-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .product-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 20px -8px rgba(26, 51, 38, 0.15); }
+        .product-card:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 18px -6px rgba(26, 51, 38, 0.12); }
     </style>
 </head>
 <body class="antialiased pb-24">
- 
+
     <header class="bg-agave shadow-lg sticky top-0 z-40">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center text-white">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center text-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-corn rounded-full flex items-center justify-center text-terra shadow-sm">
-                    <i class="fa-solid fa-fire text-xl"></i>
+                <div class="w-11 h-11 bg-corn rounded-xl flex items-center justify-center text-terra shadow-sm overflow-hidden p-1 border border-white/20">
+                    <img src="img/logopataq.png" alt="PA'TAQUEARTE Logo" class="w-full h-full object-contain" onerror="this.replaceWith(document.createElement('i')); this.className='fa-solid fa-fire text-lg';">
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight">PA'TAQUEARTE</h1>
+                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">PA'TAQUEARTE</h1>
             </div>
-            <button onclick="toggleCart()" class="relative p-2 text-white hover:text-corn transition-colors focus:outline-none btn-press group" id="cart-btn">
-                <i class="fa-solid fa-cart-shopping text-xl group-hover:scale-110 transition-transform"></i>
-                <span id="cart-badge" class="absolute -top-1 -right-1 bg-terra text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-agave transform scale-0 transition-transform duration-300">0</span>
+            <button onclick="toggleCart()" class="relative p-2.5 text-white hover:text-corn transition-colors focus:outline-none btn-press group flex items-center gap-2 bg-white/10 rounded-xl px-3.5 py-2 border border-white/15" id="cart-btn" aria-label="Abrir carrito">
+                <i class="fa-solid fa-cart-shopping text-base group-hover:scale-110 transition-transform"></i>
+                <span class="text-xs font-semibold hidden sm:inline">Mi Orden</span>
+                <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-terra text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-agave transform scale-0 transition-transform duration-300">0</span>
             </button>
         </div>
     </header>
- 
-    <div class="bg-agave text-white py-14 px-4 text-center border-b-[6px] border-terra relative overflow-hidden">
+
+    <div class="bg-agave text-white py-12 px-4 text-center border-b-[5px] border-terra relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 flex justify-center items-center pointer-events-none">
             <i class="fa-solid fa-pepper-hot text-9xl transform -rotate-12 translate-x-1/2"></i>
         </div>
- 
+
         <div class="relative z-10 stagger-fade-in" style="animation-delay: 0.1s;">
-            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
-            <p class="text-corn max-w-xl mx-auto text-lg font-medium opacity-90">Selecciona tus favoritos, arma tu orden y pídela directo a nuestro WhatsApp. ¡El sabor de verdad!</p>
- 
-            <!-- Estado del horario -->
-            <div class="mt-7 inline-flex flex-col items-center gap-1 bg-white/10 border border-white/20 rounded-2xl px-6 py-4">
-                <div class="flex items-center gap-2 font-bold text-lg">
-                    <span id="status-dot" class="w-3 h-3 rounded-full inline-block" style="background:#9ca3af"></span>
+            <h2 class="text-3xl md:text-4xl font-extrabold mb-3 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
+            <p class="text-corn max-w-xl mx-auto text-base md:text-lg font-medium opacity-90">Selecciona tus favoritos, arma tu orden y pídela directo a nuestro WhatsApp. ¡El sabor de verdad!</p>
+
+            <div class="mt-6 inline-flex flex-col items-center gap-1 bg-white/10 border border-white/20 rounded-2xl px-5 py-3 shadow-sm">
+                <div class="flex items-center gap-2 font-bold text-base">
+                    <span id="status-dot" class="w-2.5 h-2.5 rounded-full inline-block" style="background:#9ca3af"></span>
                     <span id="status-text">Revisando horario…</span>
                 </div>
-                <p id="status-sub" class="text-sm text-corn/90"></p>
-                <p class="text-xs text-corn/70 mt-1"><i class="fa-regular fa-clock mr-1"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
+                <p id="status-sub" class="text-xs md:text-sm text-corn/90"></p>
+                <p class="text-xs text-corn/70 mt-0.5"><i class="fa-regular fa-clock mr-1"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
             </div>
         </div>
     </div>
- 
-    <main class="max-w-4xl mx-auto px-4 py-10 relative">
-        <div id="menu-container" class="space-y-16"></div>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 relative">
+        <div id="menu-container" class="space-y-12"></div>
     </main>
- 
+
     <div id="cart-overlay" onclick="toggleCart()" class="overlay fixed inset-0 bg-charcoal/80 z-50 backdrop-blur-sm"></div>
- 
+
     <div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full max-w-md bg-corn z-50 shadow-2xl flex flex-col">
-        <div class="p-5 border-b border-gray-200/50 flex justify-between items-center bg-white shadow-sm z-10">
-            <h2 class="text-xl font-bold text-charcoal flex items-center gap-2">
+        <div class="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white shadow-sm z-10">
+            <h2 class="text-lg font-bold text-charcoal flex items-center gap-2">
                 <i class="fa-solid fa-basket-shopping text-terra"></i> Tu Orden
             </h2>
-            <button onclick="toggleCart()" class="p-2 text-charcoal-light hover:text-terra hover:bg-red-50 rounded-full transition focus:outline-none btn-press">
-                <i class="fa-solid fa-xmark text-xl w-6 h-6 flex items-center justify-center"></i>
+            <button onclick="toggleCart()" class="p-2 text-charcoal-light hover:text-terra hover:bg-red-50 rounded-full transition focus:outline-none btn-press flex items-center justify-center w-9 h-9" aria-label="Cerrar carrito">
+                <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
- 
-        <div id="cart-items" class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar bg-corn relative"></div>
- 
+
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar bg-corn relative"></div>
+
         <div class="p-4 border-t border-gray-200/50 bg-white shadow-[0_-15px_30px_-10px_rgba(26,51,38,0.1)] z-10 relative">
-            <div id="cart-warning" class="hidden text-terra text-sm font-semibold mb-3 text-center bg-orange-50 p-3 rounded-xl border border-orange-100">
+            <div id="cart-warning" class="hidden text-terra text-xs font-semibold mb-2.5 text-center bg-orange-50 p-2.5 rounded-xl border border-orange-100">
                 <i class="fa-solid fa-circle-exclamation mr-1"></i> Agrega al menos un producto.
             </div>
- 
-            <!-- Apartado (solo visible cuando está cerrado) -->
-            <div id="reserve-box" class="hidden mb-4 bg-orange-50 border border-orange-100 rounded-xl p-3 text-sm">
+
+            <div id="reserve-box" class="hidden mb-3 bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs">
                 <p class="font-semibold text-terra mb-1"><i class="fa-regular fa-calendar-check mr-1"></i> Estamos cerrados: aparta tu pedido</p>
-                <p class="text-charcoal-light text-xs mb-3">Elige cuándo pasas por él. Se confirma por WhatsApp.</p>
+                <p class="text-charcoal-light text-xs mb-2">Elige cuándo pasas por él. Se confirma por WhatsApp.</p>
                 <div class="grid grid-cols-2 gap-2">
-                    <label class="text-xs font-semibold text-charcoal-light">Día
-                        <select id="reserve-day" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-charcoal focus:outline-none focus:border-terra"></select>
+                    <label class="font-semibold text-charcoal-light">Día
+                        <select id="reserve-day" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2.5 py-2 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
                     </label>
-                    <label class="text-xs font-semibold text-charcoal-light">Hora
-                        <select id="reserve-time" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-charcoal focus:outline-none focus:border-terra"></select>
+                    <label class="font-semibold text-charcoal-light">Hora
+                        <select id="reserve-time" class="mt-1 w-full bg-white border border-gray-200 rounded-lg px-2.5 py-2 text-xs text-charcoal focus:outline-none focus:border-terra"></select>
                     </label>
                 </div>
             </div>
- 
-            <div class="flex justify-between items-end mb-5">
-                <span class="text-charcoal-light font-bold text-base mb-1">Total a pagar:</span>
-                <span id="cart-total" class="text-3xl font-extrabold text-terra tracking-tight">$0.00</span>
+
+            <div class="flex justify-between items-end mb-4">
+                <span class="text-charcoal-light font-bold text-sm">Total a pagar:</span>
+                <span id="cart-total" class="text-2xl font-extrabold text-terra tracking-tight">$0.00</span>
             </div>
-            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-5 rounded-xl shadow-lg flex justify-center items-center gap-2 transition-colors focus:outline-none text-base btn-press">
-                <i class="fa-brands fa-whatsapp text-xl"></i>
+            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-4 rounded-xl shadow-md flex justify-center items-center gap-2 transition-colors focus:outline-none text-sm btn-press">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
                 <span id="send-label">Pedir por WhatsApp</span>
             </button>
         </div>
     </div>
- 
-    <div id="toast-notification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-agave text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-3 border border-agave-hover">
-        <i class="fa-solid fa-check-circle text-terra"></i>
-        <span id="toast-message" class="font-medium text-sm md:text-base">Notificación</span>
+
+    <div id="toast-notification" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-agave text-white px-5 py-2.5 rounded-full shadow-xl z-50 flex items-center gap-2.5 border border-agave-hover text-sm">
+        <i class="fa-solid fa-check-circle text-terra text-base"></i>
+        <span id="toast-message" class="font-medium">Notificación</span>
     </div>
- 
+
     <script>
-        // ====== CONFIGURACIÓN ======
         const PHONE_NUMBER = "525539894750"; // +52 55 3989 4750
         const TIMEZONE = "America/Mexico_City";
-        // Horario en minutos desde medianoche. 0=Dom, 1=Lun ... 4=Jue, 5=Vie, 6=Sáb
         const SCHEDULE = {
             4: { open: 18 * 60, close: 23 * 60 }, // Jueves 6:00 pm - 11:00 pm
             5: { open: 18 * 60, close: 23 * 60 }  // Viernes 6:00 pm - 11:00 pm
         };
         const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
- 
-        // ====== HORARIO (usa el reloj del dispositivo, convertido a hora de la taquería) ======
+
         function getNow() {
             const parts = new Intl.DateTimeFormat('en-US', {
                 timeZone: TIMEZONE, weekday: 'short', year: 'numeric', month: 'numeric',
@@ -172,17 +165,17 @@ Index · HTML
             const days = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
             return { dow: days[get('weekday')], min: (+get('hour')) * 60 + (+get('minute')), y: +get('year'), m: +get('month'), d: +get('day') };
         }
- 
+
         function fmtTime(min) {
             const h = Math.floor(min / 60), mm = min % 60;
             return `${h % 12 || 12}:${String(mm).padStart(2, '0')} ${h >= 12 ? 'pm' : 'am'}`;
         }
- 
+
         function dateLabel(now, offset) {
             const dt = new Date(Date.UTC(now.y, now.m - 1, now.d + offset));
             return `${DAY_NAMES[dt.getUTCDay()]} ${dt.getUTCDate()} de ${MONTHS[dt.getUTCMonth()]}`;
         }
- 
+
         function getStatus() {
             const now = getNow();
             const today = SCHEDULE[now.dow];
@@ -191,23 +184,23 @@ Index · HTML
             for (let offset = 0; offset <= 14 && slots.length < 4; offset++) {
                 const s = SCHEDULE[(now.dow + offset) % 7];
                 if (!s) continue;
-                if (offset === 0 && now.min >= s.open) continue; // hoy ya abrió o ya cerró
+                if (offset === 0 && now.min >= s.open) continue;
                 slots.push({ offset, label: dateLabel(now, offset), open: s.open, close: s.close });
             }
             return { isOpen, today, slots };
         }
- 
+
         let storeOpen = true;
         let lastSlotsKey = '';
- 
+
         function updateStatus() {
             const { isOpen, today, slots } = getStatus();
             storeOpen = isOpen;
- 
+
             const dot = document.getElementById('status-dot');
             const text = document.getElementById('status-text');
             const sub = document.getElementById('status-sub');
- 
+
             if (isOpen) {
                 dot.style.background = '#25D366';
                 text.textContent = 'Abierto ahora';
@@ -219,11 +212,10 @@ Index · HTML
                 const rel = next.offset === 0 ? 'hoy' : next.offset === 1 ? 'mañana' : `el ${next.label}`;
                 sub.textContent = `Abrimos ${rel} a las ${fmtTime(next.open)}. Puedes apartar tu pedido.`;
             }
- 
+
             document.getElementById('reserve-box').classList.toggle('hidden', isOpen);
             document.getElementById('send-label').textContent = isOpen ? 'Pedir por WhatsApp' : 'Apartar por WhatsApp';
- 
-            // Reconstruir selectores solo si cambian las opciones (para no perder la selección)
+
             const key = isOpen ? 'open' : slots.map(s => s.label).join('|');
             if (key !== lastSlotsKey) {
                 lastSlotsKey = key;
@@ -237,17 +229,20 @@ Index · HTML
                 }
             }
         }
- 
-        // ====== IMÁGENES (GitHub) ======
-        const IMG_PATH = 'img/';   // carpeta donde están las fotos, junto al index.html
-        const IMG_EXT = '.jpg';    // cambia a '.jpeg' si tus archivos terminan así
+
+        const IMG_PATH = 'img/';
+        const IMG_EXT = '.jpg';
         const imgSrc = name => IMG_PATH + encodeURIComponent(name) + IMG_EXT;
+
         const TACO_IMG = {
-            pastor: 'Pastor', bistec: 'Bistec', longaniza: 'Longaniza',
-            pechuga: 'Pechuga', chorizo: 'Chorizoargentino', campechano: 'Campechano2'
+            pastor: 'Pastor',
+            bistec: 'Bistec',
+            longaniza: 'Longaniza',
+            pechuga: 'Pechuga',
+            chorizo: 'Chorizoargentino',
+            campechano: 'Campechano2'
         };
- 
-        // ====== MENÚ ======
+
         const meats = [
             { idSuffix: 'pastor', name: 'al Pastor' },
             { idSuffix: 'bistec', name: 'de Bistec' },
@@ -257,7 +252,7 @@ Index · HTML
             { idSuffix: 'chistorra', name: 'de Chistorra' },
             { idSuffix: 'campechano', name: 'Campechano' }
         ];
- 
+
         const generateItems = (prefixId, baseName, price, emoji, image) => {
             return meats.map(meat => ({
                 id: `${prefixId}-${meat.idSuffix}`,
@@ -267,24 +262,25 @@ Index · HTML
                 image: typeof image === 'function' ? image(meat.idSuffix) : image
             }));
         };
- 
+
         const menuData = [
             { category: "🌮 Tacos", items: generateItems('t', 'Taco', 24, '🌮', k => TACO_IMG[k]) },
             { category: "🥪 Tortas", items: generateItems('tor', 'Torta', 40, '🥪', 'Torta') },
             { category: "🧀 Gringas", items: generateItems('g', 'Gringa', 55, '🧀', 'Gringas') },
             { category: "🌮 Quesatacos", items: generateItems('q', 'Quesataco', 50, '🌮', 'Quesataco') },
-            { category: "🌋 Volcanes", items: generateItems('v', 'Volcán', 25, '🌋') },
+            { category: "🌋 Volcanes", items: generateItems('v', 'Volcán', 25, '🌋', 'Pastor2') },
             { category: "🍽️ Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, '🍽️', 'Orden de tacos') },
             { category: "🌶️ Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, '🌶', 'Chilerellenoconcarne') },
             {
                 category: "🥩 Alambres",
                 items: [
-                    ...generateItems('a', 'Alambre', 110, '🥩'),
+                    ...generateItems('a', 'Alambre', 110, '🥩', 'Grnga2'),
                     {
                         id: 'a-combinado',
                         name: 'Alambre Combinado',
                         price: 110,
                         emoji: '🥩',
+                        image: 'Grnga2',
                         desc: 'Elige tus carnes (especifícalo al enviar tu pedido).'
                     }
                 ]
@@ -292,9 +288,9 @@ Index · HTML
             {
                 category: "🧅 Extras",
                 items: [
-                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, emoji: '🌋' },
+                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, emoji: '🌋', image: 'Pastor2' },
                     { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, emoji: '🧅', image: 'Cebollitas' },
-                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, emoji: '🌶️' }
+                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, emoji: '🌶️', image: 'Chilerellenoconcarne' }
                 ]
             },
             {
@@ -302,47 +298,47 @@ Index · HTML
                 items: [{ id: 'b-refresco', name: 'Refresco', price: 25, emoji: '🥤' }]
             }
         ];
- 
+
         let cart = [];
- 
+
         function renderMenu() {
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
- 
+
             menuData.forEach((section, index) => {
                 const sectionHTML = document.createElement('div');
                 sectionHTML.className = `stagger-fade-in`;
-                sectionHTML.style.animationDelay = `${0.1 + (index * 0.1)}s`;
- 
+                sectionHTML.style.animationDelay = `${0.08 + (index * 0.08)}s`;
+
                 let itemsHTML = section.items.map(item => `
-                    <div class="product-card bg-white rounded-2xl premium-shadow p-4 flex gap-3 h-full border border-gray-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-16 h-16 bg-corn rounded-bl-[100px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
-                        <div class="${item.image ? 'w-20 h-20 sm:w-24 sm:h-24' : 'w-12 h-12 text-2xl'} bg-corn rounded-xl flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
-                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.parentNode.classList.add('text-3xl');this.replaceWith('${item.emoji}')">` : item.emoji}
+                    <div class="product-card bg-white rounded-xl premium-shadow p-3 flex gap-3 h-full border border-gray-100 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-14 h-14 bg-corn rounded-bl-[80px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
+                        <div class="${item.image ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-10 h-10 text-xl'} bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
+                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.parentNode.classList.add('text-2xl');this.replaceWith('${item.emoji}')">` : item.emoji}
                         </div>
                         <div class="flex-1 flex flex-col justify-between z-10">
                             <div>
-                                <h4 class="font-bold text-charcoal leading-tight">${item.name}</h4>
-                                ${item.desc ? `<p class="text-xs text-charcoal-light mt-1.5 leading-relaxed bg-corn p-2 rounded-md border border-gray-100">${item.desc}</p>` : ''}
+                                <h4 class="font-bold text-charcoal text-xs sm:text-sm leading-snug">${item.name}</h4>
+                                ${item.desc ? `<p class="text-[11px] text-charcoal-light mt-1 leading-relaxed bg-corn p-1.5 rounded border border-gray-100">${item.desc}</p>` : ''}
                             </div>
-                            <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100/60">
-                                <span class="font-extrabold text-terra text-base">$${item.price.toFixed(2)}</span>
-                                <div class="flex items-center gap-3" id="controls-${item.id}">
-                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1.5 rounded-full text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1.5">
-                                        <i class="fa-solid fa-plus text-xs"></i> Agregar
+                            <div class="flex justify-between items-center mt-2 pt-1.5 border-t border-gray-100/60">
+                                <span class="font-extrabold text-terra text-sm sm:text-base">$${item.price.toFixed(2)}</span>
+                                <div class="flex items-center gap-2" id="controls-${item.id}">
+                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1 rounded-full text-[11px] transition-colors shadow-sm focus:outline-none flex items-center gap-1">
+                                        <i class="fa-solid fa-plus text-[10px]"></i> Agregar
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `).join('');
- 
+
                 sectionHTML.innerHTML = `
-                    <h3 class="text-2xl font-black text-agave mb-6 flex items-center gap-3 uppercase tracking-wide border-b border-agave/10 pb-3">
-                        <span class="bg-terra w-2 h-8 rounded-full inline-block"></span>
+                    <h3 class="text-xl font-black text-agave mb-4 flex items-center gap-2.5 uppercase tracking-wide border-b border-agave/10 pb-2">
+                        <span class="bg-terra w-1.5 h-6 rounded-full inline-block"></span>
                         ${section.category}
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                         ${itemsHTML}
                     </div>
                 `;
@@ -350,18 +346,18 @@ Index · HTML
             });
             updateMenuControls();
         }
- 
+
         function getCartItem(id) {
             return cart.find(item => item.id === id);
         }
- 
+
         function triggerCartAnimation() {
             const btn = document.getElementById('cart-btn');
             btn.classList.remove('animate-pop');
             void btn.offsetWidth;
             btn.classList.add('animate-pop');
         }
- 
+
         function addToCart(id, name, price) {
             const existing = getCartItem(id);
             if (existing) {
@@ -373,7 +369,7 @@ Index · HTML
             triggerCartAnimation();
             updateCartUI();
         }
- 
+
         function updateQuantity(id, change) {
             const itemIndex = cart.findIndex(item => item.id === id);
             if (itemIndex > -1) {
@@ -383,11 +379,11 @@ Index · HTML
             }
             updateCartUI();
         }
- 
+
         function updateCartUI() {
             const badge = document.getElementById('cart-badge');
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
- 
+
             badge.innerText = totalItems;
             if (totalItems > 0) {
                 badge.style.transform = 'scale(1)';
@@ -395,102 +391,102 @@ Index · HTML
             } else {
                 badge.style.transform = 'scale(0)';
             }
- 
+
             updateMenuControls();
- 
+
             const cartItemsContainer = document.getElementById('cart-items');
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = `
-                    <div class="text-center py-16 flex flex-col items-center justify-center h-full opacity-60">
-                        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 premium-shadow border border-gray-100">
-                            <i class="fa-solid fa-basket-shopping text-4xl text-gray-300"></i>
+                    <div class="text-center py-12 flex flex-col items-center justify-center h-full opacity-60">
+                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-3 premium-shadow border border-gray-100">
+                            <i class="fa-solid fa-basket-shopping text-3xl text-gray-300"></i>
                         </div>
-                        <p class="font-bold text-charcoal text-lg">Tu orden está vacía</p>
-                        <p class="text-sm mt-1 text-charcoal-light">Anímate a probar nuestros tacos</p>
+                        <p class="font-bold text-charcoal text-base">Tu orden está vacía</p>
+                        <p class="text-xs mt-0.5 text-charcoal-light">Anímate a probar nuestros deliciosos tacos</p>
                     </div>
                 `;
             } else {
                 cartItemsContainer.innerHTML = cart.map(item => `
-                    <div class="bg-white p-4 rounded-xl premium-shadow border border-gray-100 flex justify-between items-center transition-all">
-                        <div class="flex-1 pr-3">
-                            <h5 class="font-bold text-charcoal text-sm leading-tight">${item.name}</h5>
-                            <p class="text-terra font-extrabold mt-1 text-sm">$${(item.price * item.quantity).toFixed(2)}</p>
+                    <div class="bg-white p-3 rounded-xl premium-shadow border border-gray-100 flex justify-between items-center transition-all">
+                        <div class="flex-1 pr-2">
+                            <h5 class="font-bold text-charcoal text-xs leading-tight">${item.name}</h5>
+                            <p class="text-terra font-extrabold mt-0.5 text-xs">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
-                        <div class="flex items-center gap-3 bg-corn rounded-lg p-1.5 border border-gray-200">
-                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-7 h-7 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded-md hover:shadow-sm transition focus:outline-none">
-                                <i class="fa-solid fa-minus text-sm"></i>
+                        <div class="flex items-center gap-1.5 bg-corn rounded-lg p-1 border border-gray-200">
+                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded transition focus:outline-none" aria-label="Menos">
+                                <i class="fa-solid fa-minus text-[10px]"></i>
                             </button>
-                            <span class="w-4 text-center font-bold text-base text-charcoal">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-7 h-7 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded-md hover:shadow-sm transition focus:outline-none">
-                                <i class="fa-solid fa-plus text-sm"></i>
+                            <span class="w-5 text-center font-bold text-xs text-charcoal">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-6 h-6 flex items-center justify-center text-charcoal-light hover:bg-white hover:text-terra rounded transition focus:outline-none" aria-label="Más">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
                             </button>
                         </div>
                     </div>
                 `).join('');
             }
- 
+
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
         }
- 
+
         function updateMenuControls() {
             menuData.forEach(section => {
                 section.items.forEach(item => {
                     const controlsDiv = document.getElementById(`controls-${item.id}`);
                     if (!controlsDiv) return;
- 
+
                     const cartItem = getCartItem(item.id);
- 
+
                     if (cartItem) {
                         controlsDiv.innerHTML = `
-                            <div class="flex items-center gap-1 bg-corn rounded-full p-1 border border-gray-200 premium-shadow">
-                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-7 h-7 bg-white rounded-full flex items-center justify-center text-charcoal-light hover:text-terra hover:bg-gray-50 transition shadow-sm focus:outline-none">
-                                    <i class="fa-solid fa-minus text-xs"></i>
+                            <div class="flex items-center gap-1 bg-corn rounded-full px-1.5 py-0.5 border border-gray-200 premium-shadow">
+                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-6 h-6 bg-white rounded-full flex items-center justify-center text-charcoal-light hover:text-terra transition shadow-sm focus:outline-none" aria-label="Menos">
+                                    <i class="fa-solid fa-minus text-[10px]"></i>
                                 </button>
-                                <span class="font-bold w-6 text-center text-charcoal text-xs">${cartItem.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-7 h-7 bg-terra text-white rounded-full flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none">
-                                    <i class="fa-solid fa-plus text-xs"></i>
+                                <span class="font-bold w-5 text-center text-charcoal text-xs">${cartItem.quantity}</span>
+                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-6 h-6 bg-terra text-white rounded-full flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none" aria-label="Más">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
                                 </button>
                             </div>
                         `;
                     } else {
                         controlsDiv.innerHTML = `
-                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1.5 rounded-full text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus text-xs"></i> Agregar
+                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-3 py-1 rounded-full text-[11px] transition-colors shadow-sm focus:outline-none flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Agregar
                             </button>
                         `;
                     }
                 });
             });
         }
- 
+
         function toggleCart() {
             const sidebar = document.getElementById('cart-sidebar');
             const overlay = document.getElementById('cart-overlay');
- 
+
             sidebar.classList.toggle('open');
             overlay.classList.toggle('open');
- 
+
             document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
         }
- 
+
         let toastTimeout;
         function showToast(message) {
             const toast = document.getElementById('toast-notification');
             document.getElementById('toast-message').innerText = message;
             toast.classList.add('show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2500);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
- 
+
         function sendToWhatsApp() {
             if (cart.length === 0) {
                 document.getElementById('cart-warning').classList.remove('hidden');
                 return;
             }
- 
-            updateStatus(); // asegura que el estado esté vigente al momento de enviar
- 
+
+            updateStatus();
+
             let message = "🌮 *¡Hola PA'TAQUEARTE!* 🌮\n";
             if (storeOpen) {
                 message += "Me gustaría hacer el siguiente pedido:\n\n";
@@ -500,37 +496,32 @@ Index · HTML
                 message += `Quiero *APARTAR* el siguiente pedido para recogerlo el *${day}* a las *${time}*:\n\n`;
             }
             let hasCombinado = false;
- 
+
             cart.forEach(item => {
                 message += `▪️ ${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}\n`;
                 if (item.id === 'a-combinado') hasCombinado = true;
             });
- 
+
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             message += `\n*Total a pagar: $${total.toFixed(2)}*\n\n`;
- 
+
             if (hasCombinado) {
-                message += "⚠️ *Nota para mi Alambre Combinado:*\n(Escribe aquí las carnes que deseas: ______)\n\n";
+                message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
             }
- 
+
             message += storeOpen
                 ? "Quedo en espera de la confirmación. ¡Gracias! 🔥"
                 : "Quedo en espera de la confirmación de mi apartado. ¡Gracias! 🔥";
- 
+
             window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
         }
- 
+
         window.onload = () => {
             renderMenu();
             updateCartUI();
             updateStatus();
-            setInterval(updateStatus, 30000); // refresca el estado cada 30 s
+            setInterval(updateStatus, 30000);
         };
     </script>
 </body>
 </html>
- 
-
-
-
-
