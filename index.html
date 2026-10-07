@@ -6,7 +6,7 @@
     <title>PA'TAQUEARTE - Menú Interactivo</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
@@ -38,7 +38,7 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         #toast-notification { transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #toast-notification.show { transform: translateY(0); }
-        .premium-shadow { box-shadow: 0 6px 12px -2px rgba(26, 51, 38, 0.1), 0 3px 6px -2px rgba(26, 51, 38, 0.06); }
+        .premium-shadow { box-shadow: 0 8px 16px -3px rgba(26, 51, 38, 0.12), 0 4px 6px -2px rgba(26, 51, 38, 0.08); }
         @keyframes popBounce {
             0% { transform: scale(1); }
             50% { transform: scale(1.3) rotate(-3deg); }
@@ -52,105 +52,153 @@
         .stagger-fade-in { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
         .btn-press { transition: transform 0.1s ease-in-out; touch-action: manipulation; }
         .btn-press:active { transform: scale(0.95); }
-        .product-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -6px rgba(26, 51, 38, 0.15); }
+        .product-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 16px 28px -8px rgba(26, 51, 38, 0.2); }
+        
+        /* Modal Animation */
+        .modal-backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+        .modal-content { transform: scale(0.95) translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-backdrop.open .modal-content { transform: scale(1) translateY(0); opacity: 1; }
     </style>
 </head>
-<body class="antialiased pb-28 text-base md:text-lg">
+<body class="antialiased pb-32 text-lg md:text-xl">
 
     <header class="bg-agave shadow-lg sticky top-0 z-40">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center text-white">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-corn rounded-2xl flex items-center justify-center text-terra shadow-md overflow-hidden p-1 border-2 border-white/20">
-                    <img src="img/logopataq.png" alt="PA'TAQUEARTE Logo" class="w-full h-full object-contain" onerror="this.replaceWith(Object.assign(document.createElement('i'), {className: 'fa-solid fa-fire text-xl'}))">
+        <div class="max-w-5xl mx-auto px-4 py-5 flex justify-between items-center text-white">
+            <div class="flex items-center gap-3.5">
+                <div class="w-14 h-14 bg-corn rounded-2xl flex items-center justify-center text-terra shadow-md overflow-hidden p-1.5 border-2 border-white/20">
+                    <img src="img/logopataq.png" alt="PA'TAQUEARTE Logo" class="w-full h-full object-contain" onerror="this.replaceWith(Object.assign(document.createElement('i'), {className: 'fa-solid fa-fire text-2xl'}))">
                 </div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">PA'TAQUEARTE</h1>
+                <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">PA'TAQUEARTE</h1>
             </div>
-            <button onclick="toggleCart()" class="relative p-3 text-white hover:text-corn transition-colors focus:outline-none btn-press group flex items-center gap-2 bg-white/10 rounded-2xl px-4 py-2 border border-white/20 shadow-sm" id="cart-btn" aria-label="Abrir orden">
-                <i class="fa-solid fa-cart-shopping text-xl group-hover:scale-110 transition-transform"></i>
-                <span class="text-base font-bold hidden sm:inline">Mi Orden</span>
-                <span id="cart-badge" class="absolute -top-2 -right-2 bg-terra text-white text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center border-2 border-agave transform scale-0 transition-transform duration-300 shadow-md">0</span>
+            <button onclick="toggleCart()" class="relative p-3.5 text-white hover:text-corn transition-colors focus:outline-none btn-press group flex items-center gap-3 bg-white/15 rounded-2xl px-5 py-3 border-2 border-white/25 shadow-md" id="cart-btn" aria-label="Abrir orden">
+                <i class="fa-solid fa-cart-shopping text-2xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-lg md:text-xl font-extrabold hidden sm:inline">Mi Orden</span>
+                <span id="cart-badge" class="absolute -top-2.5 -right-2.5 bg-terra text-white text-base font-extrabold rounded-full h-8 w-8 flex items-center justify-center border-2 border-agave transform scale-0 transition-transform duration-300 shadow-lg">0</span>
             </button>
         </div>
     </header>
 
-    <div class="bg-agave text-white py-12 px-4 text-center border-b-[6px] border-terra relative overflow-hidden">
+    <div class="bg-agave text-white py-14 px-4 text-center border-b-[8px] border-terra relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 flex justify-center items-center pointer-events-none">
             <i class="fa-solid fa-pepper-hot text-9xl transform -rotate-12 translate-x-1/2"></i>
         </div>
 
         <div class="relative z-10 stagger-fade-in" style="animation-delay: 0.1s;">
-            <h2 class="text-3xl md:text-5xl font-extrabold mb-3 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
-            <p class="text-corn max-w-xl mx-auto text-lg md:text-xl font-medium opacity-95">Selecciona tus favoritos, arma tu orden y pídela directo a nuestro WhatsApp. ¡El sabor de verdad!</p>
+            <h2 class="text-4xl md:text-6xl font-black mb-4 drop-shadow-md tracking-tight">Auténticos y únicos</h2>
+            <p class="text-corn max-w-2xl mx-auto text-xl md:text-2xl font-bold opacity-95">Toca cualquier platillo para ver su foto grande y descripción. ¡El sabor de verdad!</p>
 
-            <div class="mt-6 inline-flex flex-col items-center gap-1.5 bg-white/10 border-2 border-white/20 rounded-2xl px-6 py-4 shadow-md">
-                <div class="flex items-center gap-2.5 font-bold text-lg md:text-xl">
-                    <span id="status-dot" class="w-3.5 h-3.5 rounded-full inline-block" style="background:#9ca3af"></span>
+            <div class="mt-8 inline-flex flex-col items-center gap-2 bg-white/10 border-2 border-white/25 rounded-3xl px-8 py-5 shadow-xl">
+                <div class="flex items-center gap-3 font-extrabold text-xl md:text-2xl">
+                    <span id="status-dot" class="w-4 h-4 rounded-full inline-block" style="background:#9ca3af"></span>
                     <span id="status-text">Revisando horario...</span>
                 </div>
-                <p id="status-sub" class="text-sm md:text-base text-corn/95 font-medium"></p>
-                <p class="text-xs md:text-sm text-corn/80 mt-1"><i class="fa-regular fa-clock mr-1"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
+                <p id="status-sub" class="text-base md:text-lg text-corn/95 font-bold"></p>
+                <p class="text-sm md:text-base text-corn/85 mt-1"><i class="fa-regular fa-clock mr-1.5"></i>Jueves y viernes · 6:00 pm a 11:00 pm</p>
             </div>
         </div>
     </div>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 relative">
-        <div id="menu-container" class="space-y-12"></div>
+    <main class="max-w-5xl mx-auto px-4 py-10 relative">
+        <div id="menu-container" class="space-y-14"></div>
     </main>
+
+    <div id="product-modal" class="modal-backdrop fixed inset-0 bg-charcoal/85 z-50 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="modal-content bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border-4 border-agave flex flex-col max-h-[90vh]">
+            <div class="relative bg-corn p-5 border-b-2 border-gray-200 flex justify-between items-center">
+                <h3 id="modal-title" class="text-2xl md:text-3xl font-black text-agave">Nombre del Producto</h3>
+                <button onclick="closeProductModal()" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-charcoal hover:text-terra hover:bg-orange-50 shadow-md transition font-bold text-xl btn-press border-2 border-gray-200" aria-label="Cerrar modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 md:p-8 space-y-6 no-scrollbar">
+                <div class="w-full h-72 md:h-80 bg-corn rounded-2xl overflow-hidden border-2 border-gray-200 shadow-inner flex items-center justify-center">
+                    <img id="modal-img" src="" alt="" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <span id="modal-price" class="text-3xl md:text-4xl font-black text-terra">$0.00</span>
+                </div>
+                <div class="bg-corn/70 p-5 rounded-2xl border-2 border-amber-200">
+                    <h4 class="font-bold text-agave text-lg md:text-xl mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-terra"></i> ¿Por qué te encantará?
+                    </h4>
+                    <p id="modal-desc" class="text-charcoal text-lg md:text-xl leading-relaxed font-semibold">Descripción detallada...</p>
+                </div>
+            </div>
+            <div class="p-5 bg-gray-50 border-t-2 border-gray-200 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 bg-white rounded-2xl p-2 border-2 border-gray-300 shadow-sm">
+                    <button onclick="adjustModalQty(-1)" class="w-12 h-12 bg-corn rounded-xl flex items-center justify-center text-charcoal hover:text-terra font-bold text-xl btn-press shadow-sm" aria-label="Menos cantidad">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <span id="modal-qty" class="w-10 text-center font-black text-2xl text-charcoal">1</span>
+                    <button onclick="adjustModalQty(1)" class="w-12 h-12 bg-terra text-white rounded-xl flex items-center justify-center font-bold text-xl btn-press shadow-sm hover:bg-terra-hover" aria-label="Más cantidad">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <button id="modal-add-btn" onclick="addModalToCart()" class="flex-1 bg-terra hover:bg-terra-hover text-white font-black py-4 px-6 rounded-2xl shadow-xl text-lg md:text-xl transition btn-press flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-cart-plus text-xl"></i> Agregar a mi orden
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="cart-overlay" onclick="toggleCart()" class="overlay fixed inset-0 bg-charcoal/80 z-50 backdrop-blur-sm"></div>
 
     <div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full max-w-md bg-corn z-50 shadow-2xl flex flex-col">
-        <div class="p-5 border-b border-gray-200/50 flex justify-between items-center bg-white shadow-sm z-10">
-            <h2 class="text-xl md:text-2xl font-bold text-charcoal flex items-center gap-2.5">
+        <div class="p-6 border-b-2 border-gray-200 flex justify-between items-center bg-white shadow-md z-10">
+            <h2 class="text-2xl md:text-3xl font-black text-charcoal flex items-center gap-3">
                 <i class="fa-solid fa-basket-shopping text-terra"></i> Tu Orden
             </h2>
-            <button onclick="toggleCart()" class="p-3 text-charcoal-light hover:text-terra hover:bg-red-50 rounded-full transition focus:outline-none btn-press flex items-center justify-center w-11 h-11" aria-label="Cerrar orden">
-                <i class="fa-solid fa-xmark text-xl"></i>
+            <button onclick="toggleCart()" class="w-12 h-12 bg-gray-100 hover:bg-red-50 text-charcoal hover:text-terra rounded-full transition flex items-center justify-center btn-press border-2 border-gray-200" aria-label="Cerrar orden">
+                <i class="fa-solid fa-xmark text-2xl"></i>
             </button>
         </div>
 
-        <!-- Guía paso a paso para Dones y Doñas -->
-        <div class="bg-amber-100/70 border-b border-amber-200 p-3 text-xs md:text-sm text-charcoal font-medium">
-            <p class="font-bold text-terra mb-1"><i class="fa-solid fa-circle-info mr-1"></i> Instrucciones fáciles:</p>
-            <p>1. Revisa tus productos abajo.</p>
+        <div class="bg-amber-100/90 border-b-2 border-amber-200 p-5 text-base md:text-lg text-charcoal font-bold">
+            <p class="font-extrabold text-terra mb-2 flex items-center gap-2 text-lg md:text-xl">
+                <i class="fa-solid fa-circle-info"></i> Instrucciones fáciles:
+            </p>
+            <p>1. Revisa tus platillos seleccionados abajo.</p>
             <p>2. Si estamos cerrados, elige tu día y hora para apartar.</p>
             <p>3. Presiona el botón verde de WhatsApp para enviar tu pedido.</p>
         </div>
 
-        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar bg-corn relative"></div>
+        <div id="cart-items" class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar bg-corn relative"></div>
 
-        <div class="p-5 border-t border-gray-200/50 bg-white shadow-[0_-15px_30px_-10px_rgba(26,51,38,0.1)] z-10 relative">
-            <div id="cart-warning" class="hidden text-terra text-sm font-bold mb-3 text-center bg-orange-50 p-3 rounded-xl border-2 border-orange-200">
-                <i class="fa-solid fa-circle-exclamation mr-1.5"></i> Agrega al menos un producto a tu orden.
+        <div class="p-6 border-t-2 border-gray-200 bg-white shadow-[0_-20px_35px_-10px_rgba(26,51,38,0.15)] z-10 relative">
+            <div id="cart-warning" class="hidden text-terra text-base font-extrabold mb-4 text-center bg-orange-50 p-4 rounded-2xl border-2 border-orange-200">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i> Agrega al menos un producto a tu orden.
             </div>
 
-            <div id="reserve-box" class="hidden mb-4 bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-sm">
-                <p class="font-bold text-terra mb-1.5 text-base"><i class="fa-regular fa-calendar-check mr-1.5"></i> Estamos cerrados: aparta tu pedido</p>
-                <p class="text-charcoal-light text-xs md:text-sm mb-3">Elige cuándo pasas por él. Se confirma por WhatsApp.</p>
+            <div id="reserve-box" class="hidden mb-5 bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 text-base">
+                <p class="font-extrabold text-terra mb-2 text-lg flex items-center gap-2">
+                    <i class="fa-regular fa-calendar-check"></i> Estamos cerrados: aparta tu pedido
+                </p>
+                <p class="text-charcoal-light text-base mb-3 font-semibold">Elige cuándo pasas por él. Se confirma por WhatsApp.</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <label class="font-bold text-charcoal-light text-xs md:text-sm">Día de recogida
-                        <select id="reserve-day" class="mt-1.5 w-full bg-white border-2 border-gray-300 rounded-xl px-3 py-2.5 text-sm md:text-base text-charcoal focus:outline-none focus:border-terra font-semibold"></select>
+                    <label class="font-bold text-charcoal-light text-base">Día de recogida
+                        <select id="reserve-day" class="mt-1.5 w-full bg-white border-2 border-gray-300 rounded-xl px-3 py-3 text-base text-charcoal focus:outline-none focus:border-terra font-extrabold"></select>
                     </label>
-                    <label class="font-bold text-charcoal-light text-xs md:text-sm">Hora estimada
-                        <select id="reserve-time" class="mt-1.5 w-full bg-white border-2 border-gray-300 rounded-xl px-3 py-2.5 text-sm md:text-base text-charcoal focus:outline-none focus:border-terra font-semibold"></select>
+                    <label class="font-bold text-charcoal-light text-base">Hora estimada
+                        <select id="reserve-time" class="mt-1.5 w-full bg-white border-2 border-gray-300 rounded-xl px-3 py-3 text-base text-charcoal focus:outline-none focus:border-terra font-extrabold"></select>
                     </label>
                 </div>
             </div>
 
-            <div class="flex justify-between items-end mb-4 pt-1">
-                <span class="text-charcoal font-bold text-base md:text-lg">Total a pagar:</span>
-                <span id="cart-total" class="text-2xl md:text-3xl font-extrabold text-terra tracking-tight">$0.00</span>
+            <div class="flex justify-between items-end mb-5 pt-1">
+                <span class="text-charcoal font-black text-xl">Total a pagar:</span>
+                <span id="cart-total" class="text-3xl md:text-4xl font-black text-terra tracking-tight">$0.00</span>
             </div>
-            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg flex justify-center items-center gap-3 transition-colors focus:outline-none text-base md:text-lg btn-press">
-                <i class="fa-brands fa-whatsapp text-2xl"></i>
+            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-4 px-6 rounded-2xl shadow-xl flex justify-center items-center gap-3 transition-colors text-lg md:text-xl btn-press">
+                <i class="fa-brands fa-whatsapp text-3xl"></i>
                 <span id="send-label">Pedir por WhatsApp</span>
             </button>
         </div>
     </div>
 
-    <div id="toast-notification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-agave text-white px-6 py-3.5 rounded-full shadow-2xl z-50 flex items-center gap-3 border-2 border-agave-hover text-base md:text-lg font-bold">
-        <i class="fa-solid fa-check-circle text-terra text-xl"></i>
+    <div id="toast-notification" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-agave text-white px-7 py-4 rounded-full shadow-2xl z-50 flex items-center gap-3.5 border-2 border-agave-hover text-lg md:text-xl font-extrabold">
+        <i class="fa-solid fa-check-circle text-terra text-2xl"></i>
         <span id="toast-message">Notificación</span>
     </div>
 
@@ -238,7 +286,6 @@
             }
         }
 
-        // Mapeo exacto con los enlaces .jpeg proporcionados para GitHub
         const IMG_PATH = 'img/';
         const IMG_EXT = '.jpeg';
         const imgSrc = filename => IMG_PATH + filename + IMG_EXT;
@@ -267,46 +314,146 @@
                 id: `${prefixId}-${meat.idSuffix}`,
                 name: `${baseName} ${meat.name}`,
                 price: price,
-                image: typeof imageFile === 'function' ? imageFile(meat.idSuffix) : imageFile
+                image: typeof imageFile === 'function' ? imageFile(meat.idSuffix) : imageFile,
+                desc: `Disfruta de este extraordinario ${baseName.toLowerCase()} ${meat.name.toLowerCase()} preparado al carbón con nuestra receta secreta de la casa. Carne jugosa, marinada a la perfección, servida en tortilla recién hecha con cilantro, cebolla y nuestras salsas artesanales que te harán agua la boca. ¡Una verdadera obra maestra de sabor inigualable!`
             }));
         };
 
         const menuData = [
-            { category: "Tacos", items: generateItems('t', 'Taco', 24, k => TACO_IMG[k]) },
-            { category: "Tortas", items: generateItems('tor', 'Torta', 40, 'Torta') },
-            { category: "Gringas", items: generateItems('g', 'Gringa', 55, 'Gringas') },
-            { category: "Quesatacos", items: generateItems('q', 'Quesataco', 50, 'Quesataco') },
-            { category: "Volcanes", items: generateItems('v', 'Volcán', 25, 'Pastor2') },
-            { category: "Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, 'Orden de tacos') },
-            { category: "Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, 'Chilerellenoconcarne') },
+            { 
+                category: "Tacos", 
+                items: generateItems('t', 'Taco', 24, k => TACO_IMG[k]) 
+            },
+            { 
+                category: "Tortas", 
+                items: generateItems('tor', 'Torta', 40, 'Torta').map(i => ({
+                    ...i,
+                    desc: `Nuestra famosa torta crujiente por fuera y suave por dentro, rebosante con carne al carbón recién asada, aguacate fresco, jitomate, frijolitos y queso fundido. ¡Una delicia gigante y súper llenadora que no te puedes perder!`
+                })) 
+            },
+            { 
+                category: "Gringas", 
+                items: generateItems('g', 'Gringa', 55, 'Gringas').map(i => ({
+                    ...i,
+                    desc: `Exquisita tortilla de harina grande doradita al comal con generosas capas de queso Oaxaca fundido al momento y tu carne favorita. ¡La combinación perfecta de queso derretido y sabor ahumado que enamora a todos!`
+                })) 
+            },
+            { 
+                category: "Quesatacos", 
+                items: generateItems('q', 'Quesataco', 50, 'Quesataco').map(i => ({
+                    ...i,
+                    desc: `El antojito supremo: tortilla dorada con costra de queso crujiente por fuera y jugosa carne adentro. ¡Una explosión de texturas y sabor supremo en cada mordisco!`
+                })) 
+            },
+            { 
+                category: "Volcanes", 
+                items: generateItems('v', 'Volcán', 25, 'Pastor2').map(i => ({
+                    ...i,
+                    desc: `Tortilla doradita y crujiente al carbón cubierta de queso gratinado burbujeante y tu carne favorita coronada con verdura fresca. ¡Simplemente adictivo!`
+                })) 
+            },
+            { 
+                category: "Órdenes (Viernes)", 
+                items: generateItems('o', 'Orden', 100, 'Orden de tacos').map(i => ({
+                    ...i,
+                    desc: `Nuestra clásica orden especial de tacos para consentir a toda la familia. Incluye tus tacos favoritos acompañados de papitas cambray, cebollitas asadas y chiles toreados. ¡Para comer como se debe!`
+                })) 
+            },
+            { 
+                category: "Chiles Rellenos", 
+                items: generateItems('c', 'Chile Relleno Asado', 15, 'Chilerellenoconcarne').map(i => ({
+                    ...i,
+                    desc: `Chile asado al carbón relleno de jugosa carne y toque de queso. El complemento picocito y sabroso ideal para elevar la experiencia de tus tacos.`
+                })) 
+            },
             {
                 category: "Alambres",
                 items: [
-                    ...generateItems('a', 'Alambre', 110, 'Grnga2'),
+                    ...generateItems('a', 'Alambre', 110, 'Grnga2').map(i => ({
+                        ...i,
+                        desc: `Delicioso alambre preparado con abundante carne jugosa, pimientos asados, cebolla acitronada y mucho queso Oaxaca derretido al carbón. ¡Para compartir o disfrutar al máximo!`
+                    })),
                     {
                         id: 'a-combinado',
                         name: 'Alambre Combinado',
                         price: 110,
                         image: 'Grnga2',
-                        desc: 'Elige tus carnes (especifícalo al enviar tu pedido).'
+                        desc: 'Arma tu alambre combinando tus carnes favoritas con pimientos, cebolla y queso derretido. ¡Especifica tus carnes al enviar tu pedido por WhatsApp!'
                     }
                 ]
             },
             {
                 category: "Extras",
                 items: [
-                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, image: 'Pastor2' },
-                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, image: 'Cebollitas' },
-                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, image: 'Chilerellenoconcarne' }
+                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, image: 'Pastor2', desc: 'Tortilla crujiente con queso gratinado y carne al carbón.' },
+                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, image: 'Cebollitas', desc: 'Cebollitas cambray asadas al carbón con su toque de limón y sal.' },
+                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, image: 'Chilerellenoconcarne', desc: 'Chiles toreados o rellenos preparados al carbón.' }
                 ]
             },
             {
                 category: "Bebidas",
-                items: [{ id: 'b-refresco', name: 'Refresco', price: 25, image: 'Pastor' }]
+                items: [{ id: 'b-refresco', name: 'Refresco', price: 25, image: 'Pastor', desc: 'Refresco bien frío en presentación de vidrio o lata para acompañar tus tacos.' }]
             }
         ];
 
         let cart = [];
+        let currentModalItem = null;
+        let modalQuantity = 1;
+
+        const allMenuItems = {};
+        menuData.forEach(section => {
+            section.items.forEach(item => {
+                allMenuItems[item.id] = item;
+            });
+        });
+
+        function openProductModalById(id) {
+            const item = allMenuItems[id];
+            if (!item) return;
+
+            currentModalItem = { id: item.id, name: item.name, price: item.price };
+            modalQuantity = 1;
+            
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-price').innerText = `$${item.price.toFixed(2)}`;
+            document.getElementById('modal-desc').innerText = item.desc;
+            document.getElementById('modal-qty').innerText = '1';
+            
+            const imgEl = document.getElementById('modal-img');
+            imgEl.src = imgSrc(item.image);
+            imgEl.onerror = function() {
+                this.src = 'https://placehold.co/600x400/1A3326/fdf8e7?text=PATAQUEARTE';
+            };
+
+            document.getElementById('product-modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.remove('open');
+            document.body.style.overflow = '';
+            currentModalItem = null;
+        }
+
+        function adjustModalQty(change) {
+            modalQuantity += change;
+            if (modalQuantity < 1) modalQuantity = 1;
+            document.getElementById('modal-qty').innerText = modalQuantity;
+        }
+
+        function addModalToCart() {
+            if (!currentModalItem) return;
+            const existing = getCartItem(currentModalItem.id);
+            if (existing) {
+                existing.quantity += modalQuantity;
+            } else {
+                cart.push({ id: currentModalItem.id, name: currentModalItem.name, price: currentModalItem.price, quantity: modalQuantity });
+            }
+            showToast(`Agregado a tu orden: ${modalQuantity}x ${currentModalItem.name}`);
+            triggerCartAnimation();
+            updateCartUI();
+            closeProductModal();
+        }
 
         function renderMenu() {
             const container = document.getElementById('menu-container');
@@ -318,24 +465,22 @@
                 sectionHTML.style.animationDelay = `${0.08 + (index * 0.08)}s`;
 
                 let itemsHTML = section.items.map(item => `
-                    <div class="product-card bg-white rounded-2xl premium-shadow p-3.5 sm:p-4 flex gap-3 sm:gap-4 h-full border-2 border-gray-100 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-16 h-16 bg-corn rounded-bl-[80px] -z-0 opacity-60"></div>
+                    <div onclick="openProductModalById('${item.id}')" class="product-card bg-white rounded-3xl premium-shadow p-5 md:p-6 flex gap-4 md:gap-5 h-full border-2 border-gray-100 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-corn rounded-bl-[100px] -z-0 opacity-60"></div>
                         
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 bg-corn rounded-xl flex items-center justify-center shrink-0 border-2 border-gray-200 z-10 overflow-hidden shadow-inner">
-                            <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-xs font-bold p-1 text-center', innerText: 'TACOS'}))">
+                        <div class="w-28 h-28 md:w-32 md:h-32 bg-corn rounded-2xl flex items-center justify-center shrink-0 border-2 border-gray-200 z-10 overflow-hidden shadow-inner">
+                            <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-sm font-black p-2 text-center', innerText: 'PA\'TAQUEARTE'}))">
                         </div>
 
                         <div class="flex-1 flex flex-col justify-between z-10 min-w-0">
                             <div>
-                                <h4 class="font-bold text-charcoal text-base sm:text-lg leading-snug">${item.name}</h4>
-                                ${item.desc ? `<p class="text-xs sm:text-sm text-charcoal-light mt-1 leading-normal bg-corn p-2 rounded-xl border border-gray-200">${item.desc}</p>` : ''}
+                                <h4 class="font-black text-charcoal text-xl md:text-2xl leading-snug group-hover:text-terra transition-colors">${item.name}</h4>
+                                <p class="text-base text-charcoal-light mt-1.5 font-bold">Toca para ver foto grande</p>
                             </div>
-                            <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-200/80">
-                                <span class="font-extrabold text-terra text-lg sm:text-xl">$${item.price.toFixed(2)}</span>
-                                <div class="flex items-center gap-1.5" id="controls-${item.id}">
-                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-4 py-2 rounded-xl text-sm sm:text-base transition-colors shadow-md focus:outline-none flex items-center gap-1.5">
-                                        <i class="fa-solid fa-plus text-xs"></i> Agregar
-                                    </button>
+                            <div class="flex justify-between items-center mt-3 pt-3 border-t-2 border-gray-100">
+                                <span class="font-black text-terra text-2xl md:text-3xl">$${item.price.toFixed(2)}</span>
+                                <div class="bg-terra hover:bg-terra-hover text-white font-extrabold px-5 py-3 rounded-2xl text-lg transition-colors shadow-lg flex items-center gap-2 btn-press">
+                                    <i class="fa-solid fa-eye text-base"></i> Ver más
                                 </div>
                             </div>
                         </div>
@@ -343,17 +488,16 @@
                 `).join('');
 
                 sectionHTML.innerHTML = `
-                    <h3 class="text-xl sm:text-2xl font-black text-agave mb-4 flex items-center gap-3 uppercase tracking-wide border-b-2 border-agave/15 pb-2">
-                        <span class="bg-terra w-2 h-7 rounded-full inline-block"></span>
+                    <h3 class="text-3xl font-black text-agave mb-6 flex items-center gap-3.5 uppercase tracking-wide border-b-4 border-agave/15 pb-3">
+                        <span class="bg-terra w-4 h-10 rounded-full inline-block"></span>
                         ${section.category}
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         ${itemsHTML}
                     </div>
                 `;
                 container.appendChild(sectionHTML);
             });
-            updateMenuControls();
         }
 
         function getCartItem(id) {
@@ -367,23 +511,10 @@
             btn.classList.add('animate-pop');
         }
 
-        function addToCart(id, name, price) {
-            const existing = getCartItem(id);
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                cart.push({ id, name, price, quantity: 1 });
-                showToast(`Agregado a tu orden: ${name}`);
-            }
-            triggerCartAnimation();
-            updateCartUI();
-        }
-
         function updateQuantity(id, change) {
             const itemIndex = cart.findIndex(item => item.id === id);
             if (itemIndex > -1) {
                 cart[itemIndex].quantity += change;
-                if (change > 0) triggerCartAnimation();
                 if (cart[itemIndex].quantity <= 0) cart.splice(itemIndex, 1);
             }
             updateCartUI();
@@ -401,33 +532,31 @@
                 badge.style.transform = 'scale(0)';
             }
 
-            updateMenuControls();
-
             const cartItemsContainer = document.getElementById('cart-items');
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = `
-                    <div class="text-center py-12 flex flex-col items-center justify-center h-full opacity-70">
-                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-3 premium-shadow border-2 border-gray-200">
-                            <i class="fa-solid fa-basket-shopping text-3xl text-gray-300"></i>
+                    <div class="text-center py-16 flex flex-col items-center justify-center h-full opacity-75">
+                        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 premium-shadow border-2 border-gray-200">
+                            <i class="fa-solid fa-basket-shopping text-4xl text-gray-300"></i>
                         </div>
-                        <p class="font-bold text-charcoal text-lg">Tu orden está vacía</p>
-                        <p class="text-sm mt-1 text-charcoal-light">Toca en "Agregar" en cualquiera de nuestros platillos</p>
+                        <p class="font-black text-charcoal text-2xl">Tu orden está vacía</p>
+                        <p class="text-lg mt-2 text-charcoal-light font-bold">Toca cualquier platillo para agregarlo</p>
                     </div>
                 `;
             } else {
                 cartItemsContainer.innerHTML = cart.map(item => `
-                    <div class="bg-white p-3.5 rounded-2xl premium-shadow border-2 border-gray-200 flex justify-between items-center transition-all">
+                    <div class="bg-white p-5 rounded-2xl premium-shadow border-2 border-gray-200 flex justify-between items-center transition-all">
                         <div class="flex-1 pr-3">
-                            <h5 class="font-bold text-charcoal text-base leading-snug">${item.name}</h5>
-                            <p class="text-terra font-extrabold mt-1 text-base">$${(item.price * item.quantity).toFixed(2)}</p>
+                            <h5 class="font-black text-charcoal text-xl leading-snug">${item.name}</h5>
+                            <p class="text-terra font-black mt-1 text-2xl">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
-                        <div class="flex items-center gap-2 bg-corn rounded-xl p-1.5 border-2 border-gray-300 shadow-sm">
-                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-9 h-9 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded-lg shadow-sm font-bold text-base transition focus:outline-none" aria-label="Disminuir cantidad">
-                                <i class="fa-solid fa-minus text-sm"></i>
+                        <div class="flex items-center gap-3 bg-corn rounded-2xl p-2 border-2 border-gray-300 shadow-sm">
+                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-12 h-12 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded-xl shadow-sm font-bold text-xl transition focus:outline-none" aria-label="Disminuir cantidad">
+                                <i class="fa-solid fa-minus"></i>
                             </button>
-                            <span class="w-6 text-center font-extrabold text-lg text-charcoal">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-9 h-9 bg-terra text-white flex items-center justify-center rounded-lg shadow-sm font-bold text-base hover:bg-terra-hover transition focus:outline-none" aria-label="Aumentar cantidad">
-                                <i class="fa-solid fa-plus text-sm"></i>
+                            <span class="w-10 text-center font-black text-2xl text-charcoal">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-12 h-12 bg-terra text-white flex items-center justify-center rounded-xl shadow-sm font-bold text-xl hover:bg-terra-hover transition focus:outline-none" aria-label="Aumentar cantidad">
+                                <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
                     </div>
@@ -436,37 +565,6 @@
 
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
-        }
-
-        function updateMenuControls() {
-            menuData.forEach(section => {
-                section.items.forEach(item => {
-                    const controlsDiv = document.getElementById(`controls-${item.id}`);
-                    if (!controlsDiv) return;
-
-                    const cartItem = getCartItem(item.id);
-
-                    if (cartItem) {
-                        controlsDiv.innerHTML = `
-                            <div class="flex items-center gap-1.5 bg-corn rounded-xl p-1.5 border-2 border-gray-300 premium-shadow">
-                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-8 h-8 bg-white rounded-lg flex items-center justify-center text-charcoal hover:text-terra transition shadow-sm font-bold text-sm focus:outline-none" aria-label="Menos">
-                                    <i class="fa-solid fa-minus text-xs"></i>
-                                </button>
-                                <span class="font-extrabold w-6 text-center text-charcoal text-base">${cartItem.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-8 h-8 bg-terra text-white rounded-lg flex items-center justify-center hover:bg-terra-hover transition shadow-sm font-bold text-sm focus:outline-none" aria-label="Más">
-                                    <i class="fa-solid fa-plus text-xs"></i>
-                                </button>
-                            </div>
-                        `;
-                    } else {
-                        controlsDiv.innerHTML = `
-                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-4 py-2 rounded-xl text-sm sm:text-base transition-colors shadow-md focus:outline-none flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus text-xs"></i> Agregar
-                            </button>
-                        `;
-                    }
-                });
-            });
         }
 
         function toggleCart() {
