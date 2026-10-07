@@ -253,49 +253,47 @@
             { idSuffix: 'campechano', name: 'Campechano' }
         ];
 
-        const generateItems = (prefixId, baseName, price, emoji, image) => {
+        const generateItems = (prefixId, baseName, price, image) => {
             return meats.map(meat => ({
                 id: `${prefixId}-${meat.idSuffix}`,
                 name: `${baseName} ${meat.name}`,
                 price: price,
-                emoji: emoji,
                 image: typeof image === 'function' ? image(meat.idSuffix) : image
             }));
         };
 
         const menuData = [
-            { category: "🌮 Tacos", items: generateItems('t', 'Taco', 24, '🌮', k => TACO_IMG[k]) },
-            { category: "🥪 Tortas", items: generateItems('tor', 'Torta', 40, '🥪', 'Torta') },
-            { category: "🧀 Gringas", items: generateItems('g', 'Gringa', 55, '🧀', 'Gringas') },
-            { category: "🌮 Quesatacos", items: generateItems('q', 'Quesataco', 50, '🌮', 'Quesataco') },
-            { category: "🌋 Volcanes", items: generateItems('v', 'Volcán', 25, '🌋', 'Pastor2') },
-            { category: "🍽️ Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, '🍽️', 'Orden de tacos') },
-            { category: "🌶️ Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, '🌶', 'Chilerellenoconcarne') },
+            { category: "Tacos", items: generateItems('t', 'Taco', 24, k => TACO_IMG[k]) },
+            { category: "Tortas", items: generateItems('tor', 'Torta', 40, 'Torta') },
+            { category: "Gringas", items: generateItems('g', 'Gringa', 55, 'Gringas') },
+            { category: "Quesatacos", items: generateItems('q', 'Quesataco', 50, 'Quesataco') },
+            { category: "Volcanes", items: generateItems('v', 'Volcán', 25, 'Pastor2') },
+            { category: "Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, 'Orden de tacos') },
+            { category: "Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, 'Chilerellenoconcarne') },
             {
-                category: "🥩 Alambres",
+                category: "Alambres",
                 items: [
-                    ...generateItems('a', 'Alambre', 110, '🥩', 'Grnga2'),
+                    ...generateItems('a', 'Alambre', 110, 'Grnga2'),
                     {
                         id: 'a-combinado',
                         name: 'Alambre Combinado',
                         price: 110,
-                        emoji: '🥩',
                         image: 'Grnga2',
                         desc: 'Elige tus carnes (especifícalo al enviar tu pedido).'
                     }
                 ]
             },
             {
-                category: "🧅 Extras",
+                category: "Extras",
                 items: [
-                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, emoji: '🌋', image: 'Pastor2' },
-                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, emoji: '🧅', image: 'Cebollitas' },
-                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, emoji: '🌶️', image: 'Chilerellenoconcarne' }
+                    { id: 'ex-volcanes', name: 'Volcanes', price: 25, image: 'Pastor2' },
+                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, image: 'Cebollitas' },
+                    { id: 'ex-chiles', name: 'Chiles c/q', price: 10, image: 'Chilerellenoconcarne' }
                 ]
             },
             {
-                category: "🥤 Bebidas",
-                items: [{ id: 'b-refresco', name: 'Refresco', price: 25, emoji: '🥤' }]
+                category: "Bebidas",
+                items: [{ id: 'b-refresco', name: 'Refresco', price: 25, image: 'Pastor' }]
             }
         ];
 
@@ -315,7 +313,7 @@
                         <div class="absolute top-0 right-0 w-12 h-12 bg-corn rounded-bl-[60px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
                         
                         <div class="w-14 h-14 sm:w-16 sm:h-16 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
-                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'text-2xl', innerText: '${item.emoji}'}))">` : `<span class="text-2xl">${item.emoji}</span>`}
+                            <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-xs font-bold', innerText: 'TACO'}))">
                         </div>
 
                         <div class="flex-1 flex flex-col justify-between z-10 min-w-0">
@@ -325,9 +323,9 @@
                             </div>
                             <div class="flex justify-between items-center mt-1.5 pt-1 border-t border-gray-100/60">
                                 <span class="font-extrabold text-terra text-xs sm:text-sm">$${item.price.toFixed(2)}</span>
-                                <div class="flex items-center gap-1.5" id="controls-${item.id}">
-                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2.5 py-1 rounded-full text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1">
-                                        <i class="fa-solid fa-plus text-[9px]"></i> Agregar
+                                <div class="flex items-center gap-1" id="controls-${item.id}">
+                                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2 py-1 rounded-md text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1">
+                                        Agregar
                                     </button>
                                 </div>
                             </div>
@@ -441,20 +439,20 @@
 
                     if (cartItem) {
                         controlsDiv.innerHTML = `
-                            <div class="flex items-center gap-1 bg-corn rounded-full px-1 py-0.5 border border-gray-200 premium-shadow">
-                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-5 h-5 bg-white rounded-full flex items-center justify-center text-charcoal-light hover:text-terra transition shadow-sm focus:outline-none" aria-label="Menos">
-                                    <i class="fa-solid fa-minus text-[9px]"></i>
+                            <div class="flex items-center gap-1 bg-corn rounded-lg px-1.5 py-0.5 border border-gray-200 premium-shadow">
+                                <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-5 h-5 bg-white rounded flex items-center justify-center text-charcoal-light hover:text-terra transition shadow-sm focus:outline-none text-[10px]" aria-label="Menos">
+                                    <i class="fa-solid fa-minus text-[8px]"></i>
                                 </button>
                                 <span class="font-bold w-4 text-center text-charcoal text-xs">${cartItem.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-5 h-5 bg-terra text-white rounded-full flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none" aria-label="Más">
-                                    <i class="fa-solid fa-plus text-[9px]"></i>
+                                <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-5 h-5 bg-terra text-white rounded flex items-center justify-center hover:bg-terra-hover transition shadow-sm focus:outline-none text-[10px]" aria-label="Más">
+                                    <i class="fa-solid fa-plus text-[8px]"></i>
                                 </button>
                             </div>
                         `;
                     } else {
                         controlsDiv.innerHTML = `
-                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2.5 py-1 rounded-full text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none flex items-center gap-1">
-                                <i class="fa-solid fa-plus text-[9px]"></i> Agregar
+                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="btn-press bg-terra hover:bg-terra-hover text-white font-bold px-2.5 py-1 rounded-md text-[10px] sm:text-xs transition-colors shadow-sm focus:outline-none">
+                                Agregar
                             </button>
                         `;
                     }
@@ -489,7 +487,7 @@
 
             updateStatus();
 
-            let message = "🌮 *¡Hola PA'TAQUEARTE!* 🌮\n";
+            let message = "*¡Hola PA'TAQUEARTE!*\n";
             if (storeOpen) {
                 message += "Me gustaría hacer el siguiente pedido:\n\n";
             } else {
@@ -512,8 +510,8 @@
             }
 
             message += storeOpen
-                ? "Quedo en espera de la confirmación. ¡Gracias! 🔥"
-                : "Quedo en espera de la confirmación de mi apartado. ¡Gracias! 🔥";
+                ? "Quedo en espera de la confirmación. ¡Gracias!"
+                : "Quedo en espera de la confirmación de mi apartado. ¡Gracias!";
 
             window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
         }
