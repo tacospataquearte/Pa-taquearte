@@ -238,6 +238,15 @@ Index · HTML
             }
         }
  
+        // ====== IMÁGENES (GitHub) ======
+        const IMG_PATH = 'img/';   // carpeta donde están las fotos, junto al index.html
+        const IMG_EXT = '.jpg';    // cambia a '.jpeg' si tus archivos terminan así
+        const imgSrc = name => IMG_PATH + encodeURIComponent(name) + IMG_EXT;
+        const TACO_IMG = {
+            pastor: 'Pastor', bistec: 'Bistec', longaniza: 'Longaniza',
+            pechuga: 'Pechuga', chorizo: 'Chorizoargentino', campechano: 'Campechano2'
+        };
+ 
         // ====== MENÚ ======
         const meats = [
             { idSuffix: 'pastor', name: 'al Pastor' },
@@ -249,23 +258,24 @@ Index · HTML
             { idSuffix: 'campechano', name: 'Campechano' }
         ];
  
-        const generateItems = (prefixId, baseName, price, emoji) => {
+        const generateItems = (prefixId, baseName, price, emoji, image) => {
             return meats.map(meat => ({
                 id: `${prefixId}-${meat.idSuffix}`,
                 name: `${baseName} ${meat.name}`,
                 price: price,
-                emoji: emoji
+                emoji: emoji,
+                image: typeof image === 'function' ? image(meat.idSuffix) : image
             }));
         };
  
         const menuData = [
-            { category: "🌮 Tacos", items: generateItems('t', 'Taco', 24, '🌮') },
-            { category: "🥪 Tortas", items: generateItems('tor', 'Torta', 40, '🥪') },
-            { category: "🧀 Gringas", items: generateItems('g', 'Gringa', 55, '🧀') },
-            { category: "🌮 Quesatacos", items: generateItems('q', 'Quesataco', 50, '🌮') },
+            { category: "🌮 Tacos", items: generateItems('t', 'Taco', 24, '🌮', k => TACO_IMG[k]) },
+            { category: "🥪 Tortas", items: generateItems('tor', 'Torta', 40, '🥪', 'Torta') },
+            { category: "🧀 Gringas", items: generateItems('g', 'Gringa', 55, '🧀', 'Gringas') },
+            { category: "🌮 Quesatacos", items: generateItems('q', 'Quesataco', 50, '🌮', 'Quesataco') },
             { category: "🌋 Volcanes", items: generateItems('v', 'Volcán', 25, '🌋') },
-            { category: "🍽️ Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, '🍽️') },
-            { category: "🌶️ Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, '🌶') },
+            { category: "🍽️ Órdenes (Viernes)", items: generateItems('o', 'Orden', 100, '🍽️', 'Orden de tacos') },
+            { category: "🌶️ Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, '🌶', 'Chilerellenoconcarne') },
             {
                 category: "🥩 Alambres",
                 items: [
@@ -283,7 +293,7 @@ Index · HTML
                 category: "🧅 Extras",
                 items: [
                     { id: 'ex-volcanes', name: 'Volcanes', price: 25, emoji: '🌋' },
-                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, emoji: '🧅' },
+                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, emoji: '🧅', image: 'Cebollitas' },
                     { id: 'ex-chiles', name: 'Chiles c/q', price: 10, emoji: '🌶️' }
                 ]
             },
@@ -307,8 +317,8 @@ Index · HTML
                 let itemsHTML = section.items.map(item => `
                     <div class="product-card bg-white rounded-2xl premium-shadow p-4 flex gap-3 h-full border border-gray-100 relative overflow-hidden group">
                         <div class="absolute top-0 right-0 w-16 h-16 bg-corn rounded-bl-[100px] -z-0 opacity-50 transition-colors group-hover:bg-[#faebd7]"></div>
-                        <div class="w-12 h-12 bg-corn rounded-xl flex items-center justify-center text-2xl shrink-0 border border-gray-100 z-10">
-                            ${item.emoji}
+                        <div class="${item.image ? 'w-20 h-20 sm:w-24 sm:h-24' : 'w-12 h-12 text-2xl'} bg-corn rounded-xl flex items-center justify-center shrink-0 border border-gray-100 z-10 overflow-hidden">
+                            ${item.image ? `<img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover" onerror="this.parentNode.classList.add('text-3xl');this.replaceWith('${item.emoji}')">` : item.emoji}
                         </div>
                         <div class="flex-1 flex flex-col justify-between z-10">
                             <div>
@@ -520,3 +530,7 @@ Index · HTML
 </body>
 </html>
  
+
+
+
+
