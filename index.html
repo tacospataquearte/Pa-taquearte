@@ -39,6 +39,7 @@
         #toast-notification { transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #toast-notification.show { transform: translateY(0); }
         .premium-shadow { box-shadow: 0 2px 8px -2px rgba(26, 51, 38, 0.08), 0 1px 3px -1px rgba(26, 51, 38, 0.04); }
+        
         @keyframes popBounce {
             0% { transform: scale(1); }
             50% { transform: scale(1.15) rotate(-2deg); }
@@ -127,6 +128,18 @@
                         <i class="fa-solid fa-fire text-terra text-xs"></i> ¡Te encantará por su sabor!
                     </h4>
                     <p id="modal-desc" class="text-charcoal text-xs leading-relaxed font-medium">Descripción detallada...</p>
+                </div>
+                <div id="modal-friday-warning" class="hidden bg-orange-50 text-terra border border-orange-200 text-[11px] p-2 rounded-lg font-bold flex items-center gap-1.5 mt-2 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas.
+                </div>
+
+                <div id="modal-toppings-container" class="mt-3 hidden">
+                    <h4 class="font-bold text-agave text-xs sm:text-sm mb-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-list-check text-terra"></i> ¿Qué le ponemos?
+                    </h4>
+                    <div id="modal-toppings-list" class="flex flex-wrap gap-1.5 mt-2">
+                        <!-- Toppings generados dinámicamente -->
+                    </div>
                 </div>
             </div>
 
@@ -402,9 +415,10 @@
             },
             { 
                 category: "Órdenes (Viernes)", 
-                items: generateItems('o', 'Orden', 100, 'Orden de tacos').map(i => ({
+                items: generateItems('o', 'Orden de 5 Tacos', 100, 'Orden de tacos').map(i => ({
                     ...i,
-                    desc: `Nuestra clásica orden especial de tacos para consentir a toda la familia. Incluye tus tacos favoritos acompañados de papitas cambray, cebollitas asadas y chiles toreados. ¡Para comer como se debe!`
+                    onlyFriday: true,
+                    desc: `Nuestra clásica orden especial de 5 tacos para consentir a toda la familia. Incluye tus 5 tacos favoritos acompañados de papitas cambray, cebollitas asadas y chiles toreados. ¡Exclusivo de los Viernes!`
                 })) 
             },
             { 
@@ -451,15 +465,31 @@
         const allMenuItems = {};
         menuData.forEach(section => {
             section.items.forEach(item => {
-                allMenuItems[item.id] = item;
+                allMenuItems[item.id] = { ...item, category: section.category };
             });
         });
+
+        function toggleAllToppings(masterCheckbox) {
+            const isChecked = masterCheckbox.checked;
+            const checkboxes = document.querySelectorAll('.single-topping');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+            });
+        }
+
+        function updateConTodoState() {
+            const checkboxes = document.querySelectorAll('.single-topping');
+            const master = document.getElementById('topping-contodo');
+            if(!master) return;
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            master.checked = allChecked;
+        }
 
         function openProductModalById(id) {
             const item = allMenuItems[id];
             if (!item) return;
 
-            currentModalItem = { id: item.id, name: item.name, price: item.price };
+            currentModalItem = { id: item.id, name: item.name, price: item.price, category: item.category };
             modalQuantity = 1;
             
             document.getElementById('modal-title').innerText = item.name;
@@ -467,6 +497,67 @@
             document.getElementById('modal-desc').innerText = item.desc;
             document.getElementById('modal-qty').innerText = '1';
             
+            const warningEl = document.getElementById('modal-friday-warning');
+            const addBtn = document.getElementById('modal-add-btn');
+            
+            if (item.onlyFriday) {
+                warningEl.classList.remove('hidden');
+                
+                const now = getNow();
+                // Si la sucursal está abierta y HOY NO es Viernes (es Jueves), bloqueamos el botón desde raíz.
+                if (storeOpen && now.dow !== 5) {
+                    addBtn.disabled = true;
+                    addBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                    addBtn.classList.remove('hover:bg-terra-hover', 'bg-terra', 'btn-press');
+                    addBtn.innerHTML = `<i class="fa-solid fa-lock text-xs"></i> Solo en Viernes`;
+                } else {
+                    addBtn.disabled = false;
+                    addBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                    addBtn.classList.add('hover:bg-terra-hover', 'bg-terra', 'btn-press');
+                    addBtn.innerHTML = `<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden`;
+                }
+            } else {
+                warningEl.classList.add('hidden');
+                addBtn.disabled = false;
+                addBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                addBtn.classList.add('hover:bg-terra-hover', 'bg-terra', 'btn-press');
+                addBtn.innerHTML = `<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden`;
+            }
+            
+            const toppingsContainer = document.getElementById('modal-toppings-container');
+            const toppingsList = document.getElementById('modal-toppings-list');
+
+            if (item.category === 'Bebidas') {
+                toppingsContainer.classList.add('hidden');
+            } else {
+                toppingsContainer.classList.remove('hidden');
+                let toppingsHTML = `
+                    <label class="cursor-pointer select-none">
+                        <input type="checkbox" id="topping-contodo" class="peer hidden" onchange="toggleAllToppings(this)">
+                        <div class="bg-gray-100 peer-checked:bg-agave peer-checked:text-white border border-gray-300 peer-checked:border-agave rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm">
+                            ✨ Con todo
+                        </div>
+                    </label>
+                `;
+
+                const baseToppings = ['Cilantro', 'Cebolla', 'Limón', 'Salsa Verde', 'Salsa Roja'];
+                const isTaco = item.category === 'Tacos' || item.category === 'Órdenes (Viernes)';
+                const extraToppings = isTaco ? ['Papas', 'Nopales'] : [];
+                const allT = [...baseToppings, ...extraToppings];
+
+                allT.forEach(t => {
+                    toppingsHTML += `
+                        <label class="cursor-pointer select-none">
+                            <input type="checkbox" name="toppings" value="${t}" class="peer hidden single-topping" onchange="updateConTodoState()">
+                            <div class="bg-gray-100 peer-checked:bg-terra peer-checked:text-white border border-gray-300 peer-checked:border-terra rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors shadow-sm">
+                                ${t}
+                            </div>
+                        </label>
+                    `;
+                });
+                toppingsList.innerHTML = toppingsHTML;
+            }
+
             const imgEl = document.getElementById('modal-img');
             imgEl.src = imgSrc(item.image);
             imgEl.onerror = function() {
@@ -491,11 +582,28 @@
 
         function addModalToCart() {
             if (!currentModalItem) return;
-            const existing = getCartItem(currentModalItem.id);
-            if (existing) {
-                existing.quantity += modalQuantity;
+
+            let selectedToppings = [];
+            if (currentModalItem.category !== 'Bebidas') {
+                const checkboxes = document.querySelectorAll('.single-topping:checked');
+                selectedToppings = Array.from(checkboxes).map(cb => cb.value);
+            }
+
+            // Crear un ID único para el carrito que incluya los complementos elegidos
+            const cartItemId = currentModalItem.id + '|' + selectedToppings.sort().join('|');
+
+            const existingIndex = cart.findIndex(item => item.cartItemId === cartItemId);
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += modalQuantity;
             } else {
-                cart.push({ id: currentModalItem.id, name: currentModalItem.name, price: currentModalItem.price, quantity: modalQuantity });
+                cart.push({ 
+                    cartItemId: cartItemId,
+                    id: currentModalItem.id, 
+                    name: currentModalItem.name, 
+                    price: currentModalItem.price, 
+                    quantity: modalQuantity,
+                    toppings: selectedToppings
+                });
             }
             showToast(`¡Agregado: ${modalQuantity}x ${currentModalItem.name}!`);
             triggerCartAnimation();
@@ -514,6 +622,7 @@
 
                 let itemsHTML = section.items.map(item => `
                     <div onclick="openProductModalById('${item.id}')" class="product-card bg-white rounded-xl premium-shadow p-2.5 flex gap-2.5 h-full border border-gray-100 relative overflow-hidden group">
+                        ${item.onlyFriday ? `<span class="absolute top-2 left-2 bg-agave text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm border border-white/20 z-20"><i class="fa-solid fa-calendar-day mr-1"></i>Solo Viernes</span>` : ''}
                         <div class="absolute top-0 right-0 w-16 h-16 bg-corn rounded-bl-[50px] -z-0 opacity-60"></div>
                         
                         <div class="w-16 h-16 sm:w-20 sm:h-20 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-200 z-10 overflow-hidden shadow-xs">
@@ -561,8 +670,8 @@
             btn.classList.add('animate-pop');
         }
 
-        function updateQuantity(id, change) {
-            const itemIndex = cart.findIndex(item => item.id === id);
+        function updateQuantity(cartItemId, change) {
+            const itemIndex = cart.findIndex(item => item.cartItemId === cartItemId);
             if (itemIndex > -1) {
                 cart[itemIndex].quantity += change;
                 if (cart[itemIndex].quantity <= 0) cart.splice(itemIndex, 1);
@@ -578,6 +687,7 @@
             if (totalItems > 0) {
                 badge.style.transform = 'scale(1)';
                 document.getElementById('cart-warning').classList.add('hidden');
+                document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Agrega al menos un producto a tu orden.`;
             } else {
                 badge.style.transform = 'scale(0)';
             }
@@ -594,23 +704,30 @@
                     </div>
                 `;
             } else {
-                cartItemsContainer.innerHTML = cart.map(item => `
+                cartItemsContainer.innerHTML = cart.map(item => {
+                    const toppingsText = item.toppings && item.toppings.length > 0
+                        ? `<p class="text-[9.5px] sm:text-[10.5px] text-charcoal-light mt-0.5 leading-tight font-medium"><i class="fa-solid fa-check text-terra mr-0.5"></i> Con: ${item.toppings.join(', ')}</p>`
+                        : '';
+                    
+                    return `
                     <div class="bg-white p-2.5 rounded-lg shadow-xs border border-gray-200 flex justify-between items-center transition-all">
                         <div class="flex-1 pr-2 min-w-0">
                             <h5 class="font-black text-charcoal text-xs sm:text-sm leading-tight truncate">${item.name}</h5>
+                            ${toppingsText}
                             <p class="text-terra font-black mt-0.5 text-xs sm:text-sm">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                         <div class="flex items-center gap-1 bg-corn rounded-lg p-1 border border-gray-300 shadow-xs shrink-0">
-                            <button onclick="updateQuantity('${item.id}', -1)" class="btn-press w-7 h-7 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition focus:outline-none" aria-label="Disminuir cantidad">
+                            <button onclick="updateQuantity('${item.cartItemId}', -1)" class="btn-press w-7 h-7 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition focus:outline-none" aria-label="Disminuir cantidad">
                                 <i class="fa-solid fa-minus"></i>
                             </button>
                             <span class="w-5 text-center font-black text-xs text-charcoal">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.id}', 1)" class="btn-press w-7 h-7 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition focus:outline-none" aria-label="Aumentar cantidad">
+                            <button onclick="updateQuantity('${item.cartItemId}', 1)" class="btn-press w-7 h-7 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition focus:outline-none" aria-label="Aumentar cantidad">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
 
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -642,6 +759,31 @@
                 return;
             }
 
+            const hasFridayOnly = cart.some(item => {
+                const menuItem = allMenuItems[item.id];
+                return menuItem && menuItem.onlyFriday;
+            });
+
+            if (hasFridayOnly) {
+                if (storeOpen) {
+                    const now = getNow();
+                    if (now.dow !== 5) { // 5 es Viernes
+                        showToast("Las órdenes son exclusivas de los Viernes.");
+                        document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ¡Hola! Te recordamos que las órdenes de 5 tacos son exclusivas de los Viernes. Para pedir hoy, por favor quítalas de tu carrito.`;
+                        document.getElementById('cart-warning').classList.remove('hidden');
+                        return;
+                    }
+                } else {
+                    const day = document.getElementById('reserve-day').value;
+                    if (!day.startsWith('Viernes')) {
+                        showToast("Aparta las órdenes para un Viernes.");
+                        document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas.`;
+                        document.getElementById('cart-warning').classList.remove('hidden');
+                        return;
+                    }
+                }
+            }
+
             updateStatus();
 
             const orderTypeSelect = document.getElementById('order-type');
@@ -670,6 +812,9 @@
             cart.forEach(item => {
                 // Usamos un guión normal en lugar del cuadrado para evitar errores de compatibilidad
                 message += `- ${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}\n`;
+                if (item.toppings && item.toppings.length > 0) {
+                    message += `  > *Con:* ${item.toppings.join(', ')}\n`;
+                }
                 if (item.id === 'a-combinado') hasCombinado = true;
             });
 
@@ -699,10 +844,12 @@
             
             setTimeout(() => {
                 const popup = document.getElementById('payment-popup');
-                popup.classList.add('show');
-                setTimeout(() => {
-                    popup.classList.remove('show');
-                }, 7000);
+                if(popup) {
+                    popup.classList.add('show');
+                    setTimeout(() => {
+                        popup.classList.remove('show');
+                    }, 7000);
+                }
             }, 800);
         };
     </script>
