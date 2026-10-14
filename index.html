@@ -59,6 +59,9 @@
         .modal-backdrop.open { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95) translateY(10px); opacity: 0; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-backdrop.open .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        #payment-popup { transform: translate(-50%, -150%); opacity: 0; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #payment-popup.show { transform: translate(-50%, 0); opacity: 1; }
     </style>
 </head>
 <body class="antialiased pb-20 text-xs sm:text-sm">
@@ -190,6 +193,28 @@
                 </div>
             </div>
 
+            <div class="mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
+                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-bell-concierge text-terra"></i> Tipo de pedido
+                </p>
+                <select id="order-type" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                    <option value="Comer en el local">🍽️ Comer en el local</option>
+                    <option value="Pasar a recoger">🛍️ Pasar a recoger (Pick-up)</option>
+                    <option value="Envío a domicilio">🛵 Envío a domicilio</option>
+                </select>
+            </div>
+
+            <div class="mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
+                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-wallet text-terra"></i> Método de pago
+                </p>
+                <select id="payment-method" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta">Tarjeta (Terminal)</option>
+                    <option value="Transferencia (SPEI)">Transferencia (SPEI)</option>
+                </select>
+            </div>
+
             <div class="flex justify-between items-end mb-2.5 pt-0.5">
                 <span class="text-charcoal font-bold text-sm">Total a pagar:</span>
                 <span id="cart-total" class="text-xl font-black text-terra tracking-tight">$0.00</span>
@@ -204,6 +229,21 @@
     <div id="toast-notification" class="fixed bottom-3 left-1/2 transform -translate-x-1/2 bg-agave text-white px-3.5 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 border border-agave-hover text-xs font-bold">
         <i class="fa-solid fa-check-circle text-terra text-sm"></i>
         <span id="toast-message">Notificación</span>
+    </div>
+
+    <div id="payment-popup" class="fixed top-4 left-1/2 bg-white px-4 py-3 rounded-xl shadow-xl z-[60] border-2 border-agave w-[90%] max-w-sm flex flex-col items-center gap-2">
+        <div class="absolute -top-2 -right-2 w-6 h-6 bg-corn rounded-full border border-agave flex items-center justify-center cursor-pointer text-agave hover:text-terra shadow-sm transition-colors" onclick="this.parentElement.classList.remove('show')">
+            <i class="fa-solid fa-xmark text-xs font-black"></i>
+        </div>
+        <p class="text-xs sm:text-sm font-bold text-agave text-center leading-tight">
+            💳 Métodos de pago aceptados:<br>
+            <span class="text-terra">Efectivo, Depósito o Tarjeta</span>
+        </p>
+        <div class="flex items-center justify-center gap-5 mt-1 bg-gray-50 rounded-lg py-2 px-4 border border-gray-100 w-full">
+            <img src="img/VISA.PNG" alt="Visa" class="h-6 sm:h-7 object-contain" onerror="this.style.display='none'">
+            <img src="img/MASTERCARD.PNG" alt="Mastercard" class="h-6 sm:h-7 object-contain" onerror="this.style.display='none'">
+            <img src="img/SPEI.PNG" alt="SPEI" class="h-6 sm:h-7 object-contain" onerror="this.style.display='none'">
+        </div>
     </div>
 
     <script>
@@ -604,23 +644,41 @@
 
             updateStatus();
 
+            const orderTypeSelect = document.getElementById('order-type');
+            const selectedOrderValue = orderTypeSelect.value;
+
+            const paymentSelect = document.getElementById('payment-method');
+            const selectedPaymentValue = paymentSelect.value;
+
             let message = "*¡Hola PA'TAQUEARTE!*\n";
             if (storeOpen) {
                 message += "Me gustaría hacer el siguiente pedido:\n\n";
             } else {
                 const day = document.getElementById('reserve-day').value;
                 const time = document.getElementById('reserve-time').value;
-                message += `Quiero *APARTAR* el siguiente pedido para recogerlo el *${day}* a las *${time}*:\n\n`;
+                
+                // Adaptar el verbo de acuerdo a la elección del usuario
+                let actionText = "disfrutarlo";
+                if (selectedOrderValue === "Comer en el local") actionText = "comer en el local";
+                if (selectedOrderValue === "Pasar a recoger") actionText = "pasar a recogerlo";
+                if (selectedOrderValue === "Envío a domicilio") actionText = "recibirlo en mi domicilio";
+
+                message += `Quiero *APARTAR* el siguiente pedido para ${actionText} el *${day}* a las *${time}*:\n\n`;
             }
             let hasCombinado = false;
 
             cart.forEach(item => {
-                message += `▪️ ${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}\n`;
+                // Usamos un guión normal en lugar del cuadrado para evitar errores de compatibilidad
+                message += `- ${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}\n`;
                 if (item.id === 'a-combinado') hasCombinado = true;
             });
 
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            message += `\n*Total a pagar: $${total.toFixed(2)}*\n\n`;
+            message += `\n*Total a pagar: $${total.toFixed(2)}*\n`;
+            
+            // Usamos solo el valor (sin emojis) para que WhatsApp no muestre símbolos raros "?"
+            message += `*Tipo de pedido:* ${selectedOrderValue}\n`;
+            message += `*Método de pago:* ${selectedPaymentValue}\n\n`;
 
             if (hasCombinado) {
                 message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
@@ -638,6 +696,14 @@
             updateCartUI();
             updateStatus();
             setInterval(updateStatus, 30000);
+            
+            setTimeout(() => {
+                const popup = document.getElementById('payment-popup');
+                popup.classList.add('show');
+                setTimeout(() => {
+                    popup.classList.remove('show');
+                }, 7000);
+            }, 800);
         };
     </script>
 </body>
