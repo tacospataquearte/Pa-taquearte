@@ -248,14 +248,21 @@
                 </select>
             </div>
 
-            <div id="delivery-box" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-[11px]">
-                <p class="font-bold text-blue-800 mb-1 text-[11px] flex items-center gap-1">
-                    <i class="fa-solid fa-map-location-dot"></i> Domicilio (Máx 6.5km)
+            <div id="delivery-box" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-[11px] space-y-2">
+                <p class="font-bold text-blue-800 mb-0.5 text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-map-location-dot"></i> Domicilio (Máx 4km)
                 </p>
                 <button onclick="window.openMapModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2 rounded-md shadow-sm transition-colors flex items-center justify-center gap-1.5 btn-press">
                     <i class="fa-solid fa-expand"></i> Abrir Mapa en Pantalla Completa
                 </button>
-                <p id="delivery-status-text" class="mt-1 font-bold text-center text-[10px] text-gray-500">Ubicación pendiente</p>
+                <p id="delivery-status-text" class="font-bold text-center text-[10px] text-gray-500">Ubicación pendiente</p>
+
+                <div>
+                    <label class="block font-bold text-blue-900 text-[10px] mb-1">
+                        <i class="fa-solid fa-house-chimney"></i> Referencias y cercanías (color de fachada, portón, etc.)
+                    </label>
+                    <textarea id="delivery-references" rows="2" placeholder="Ej: Casa blanca de dos pisos, portón negro, junto a una tienda miscelánea..." class="w-full bg-white border border-blue-200 rounded p-1.5 text-[11px] text-charcoal focus:outline-none focus:border-terra"></textarea>
+                </div>
             </div>
 
             <div class="bg-white border border-gray-200 rounded-lg p-2 shadow-xs text-[11px]">
@@ -270,7 +277,7 @@
             </div>
         </div>
 
-        <!-- ITEMS CONTAINER (LISTA DE PLATILLOS CON SU PROPIO SCROLL GENEROZO) -->
+        <!-- ITEMS CONTAINER (LISTA DE PLATILLOS) -->
         <div class="flex-1 overflow-y-auto cart-scroll p-2.5 space-y-2 bg-corn relative">
             <div class="text-[11px] font-black text-agave uppercase tracking-wide px-1 flex items-center gap-1.5">
                 <i class="fa-solid fa-utensils text-terra"></i> Platillos en tu orden:
@@ -301,7 +308,7 @@
                 <h3 class="font-black text-base flex items-center gap-2">
                     <i class="fa-solid fa-map-location-dot text-terra"></i> Confirma tu ubicación
                 </h3>
-                <p class="text-[10px] text-corn/80 mt-0.5">Área de entrega máxima: 6.5 kilómetros</p>
+                <p class="text-[10px] text-corn/80 mt-0.5">Área de entrega máxima: 4 kilómetros</p>
             </div>
             <button onclick="window.closeMapModal()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -358,7 +365,7 @@
         const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
         const TAQUERIA_COORDS = { lat: 19.31863, lng: -98.91212 };
-        const MAX_DISTANCE_KM = 6.5;
+        const MAX_DISTANCE_KM = 4;
         
         let storeOpen = true;
         let lastSlotsKey = '';
@@ -563,7 +570,6 @@
             });
         }
 
-        // Toppings System with Toggle for "Con todo"
         window.toggleTopping = function(topping) {
             if (currentToppings.includes(topping)) {
                 currentToppings = currentToppings.filter(t => t !== topping);
@@ -766,8 +772,6 @@
             }, 5000);
         }
 
-        /* --- MAP & DELIVERY LOGIC --- */
-        
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -872,7 +876,6 @@
             }
         };
 
-        /* --- WHATSAPP LOGIC --- */
         window.sendToWhatsApp = function() {
             if (cart.length === 0) {
                 showCartWarning("Agrega al menos un producto a tu orden.");
@@ -899,7 +902,7 @@
             }
 
             if (orderType === "Envío a domicilio" && !window.deliveryValid) {
-                showCartWarning("Por favor, selecciona una ubicación válida de entrega (máx 6.5km) abriendo el mapa.");
+                showCartWarning("Por favor, selecciona una ubicación válida de entrega (máx 4km) abriendo el mapa.");
                 return;
             }
 
@@ -932,8 +935,14 @@
             message += `*Tipo de pedido:* ${orderType}\n`;
             message += `*Método de pago:* ${selectedPaymentValue}\n\n`;
 
-            if (orderType === "Envío a domicilio" && window.userCoords) {
-                message += `*Ubicación de entrega:*\nhttps://www.google.com/maps/search/?api=1&query=${window.userCoords.lat},${window.userCoords.lng}\n\n`;
+            if (orderType === "Envío a domicilio") {
+                const referencesText = document.getElementById('delivery-references').value.trim();
+                if (referencesText) {
+                    message += `*Referencias de domicilio:* ${referencesText}\n\n`;
+                }
+                if (window.userCoords) {
+                    message += `*Ubicación de entrega (Google Maps):*\nhttps://www.google.com/maps/search/?api=1&query=${window.userCoords.lat},${window.userCoords.lng}\n\n`;
+                }
             }
 
             if (hasCombinado) message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
