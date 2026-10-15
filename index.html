@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Librería para el Mapa Interactivo -->
+    <!-- Leaflet CSS & JS for the Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -38,8 +38,13 @@
         .cart-sidebar.open { transform: translateX(0); }
         .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .overlay.open { opacity: 1; pointer-events: auto; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom thin scrollbar for cart */
+        .cart-scroll::-webkit-scrollbar { width: 4px; }
+        .cart-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .cart-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .cart-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
         #toast-notification { transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #toast-notification.show { transform: translateY(0); }
         .premium-shadow { box-shadow: 0 2px 8px -2px rgba(26, 51, 38, 0.08), 0 1px 3px -1px rgba(26, 51, 38, 0.04); }
@@ -50,6 +55,7 @@
             100% { transform: scale(1) rotate(0deg); }
         }
         .animate-pop { animation: popBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -67,6 +73,9 @@
         
         #payment-popup { transform: translate(-50%, -150%); opacity: 0; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         #payment-popup.show { transform: translate(-50%, 0); opacity: 1; }
+
+        .map-fullscreen { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .map-fullscreen.open { transform: translateY(0); }
     </style>
 </head>
 <body class="antialiased pb-20 text-xs sm:text-sm">
@@ -91,11 +100,9 @@
         <div class="absolute inset-0 opacity-10 flex justify-center items-center pointer-events-none">
             <i class="fa-solid fa-pepper-hot text-5xl transform -rotate-12 translate-x-1/2"></i>
         </div>
-
         <div class="relative z-10 stagger-fade-in" style="animation-delay: 0.03s;">
             <h2 class="text-xl sm:text-2xl font-black mb-1 drop-shadow tracking-tight">Auténticos y únicos</h2>
             <p class="text-corn max-w-sm mx-auto text-xs font-semibold opacity-90">Toca cualquier platillo para ver detalles y agregarlo.</p>
-
             <div class="mt-2.5 inline-flex flex-col items-center gap-0.5 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 shadow-xs">
                 <div class="flex items-center gap-1.5 font-bold text-xs sm:text-sm">
                     <span id="status-dot" class="w-2.5 h-2.5 rounded-full inline-block" style="background:#9ca3af"></span>
@@ -112,55 +119,64 @@
     </main>
 
     <div id="product-modal" class="modal-backdrop fixed inset-0 bg-charcoal/80 z-50 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto">
-        <div class="modal-content bg-white w-full max-w-sm rounded-xl shadow-xl overflow-hidden border border-agave flex flex-col max-h-[85vh] my-auto">
+        <div class="modal-content bg-white w-full max-w-sm rounded-xl shadow-xl overflow-hidden border border-agave flex flex-col max-h-[90vh] my-auto">
             <div class="bg-corn px-3 py-2.5 border-b border-gray-200 flex justify-between items-center shrink-0">
                 <h3 id="modal-title" class="text-base font-black text-agave pr-2 truncate">Nombre del Producto</h3>
-                <button onclick="closeProductModal()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-charcoal hover:text-terra shadow-xs transition font-black text-base btn-press border border-gray-200 shrink-0" aria-label="Cerrar modal">
+                <button onclick="closeProductModal()" class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-charcoal hover:text-terra shadow-xs transition font-black text-base btn-press border border-gray-200 shrink-0">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div class="overflow-y-auto p-3 space-y-2.5 no-scrollbar flex-1">
+            <div class="overflow-y-auto p-3 space-y-2.5 cart-scroll flex-1">
                 <div class="w-full h-36 sm:h-44 bg-corn rounded-lg overflow-hidden border border-gray-200 shadow-inner flex items-center justify-center">
                     <img id="modal-img" src="" alt="" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <span id="modal-price" class="text-xl sm:text-2xl font-black text-terra">$0.00</span>
                 </div>
+                
+                <div id="modal-friday-warning" class="hidden bg-orange-50 border border-orange-200 p-2 rounded-lg text-terra text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Las órdenes de 5 tacos son exclusivas de los días Viernes.
+                </div>
+
                 <div class="bg-corn/70 p-2.5 rounded-lg border border-amber-200 shadow-xs">
                     <h4 class="font-bold text-agave text-xs sm:text-sm mb-0.5 flex items-center gap-1">
                         <i class="fa-solid fa-fire text-terra text-xs"></i> ¡Te encantará por su sabor!
                     </h4>
                     <p id="modal-desc" class="text-charcoal text-xs leading-relaxed font-medium">Descripción detallada...</p>
                 </div>
-                <div id="modal-friday-warning" class="hidden bg-orange-50 text-terra border border-orange-200 text-[11px] p-2 rounded-lg font-bold flex items-center gap-1.5 mt-2 shadow-sm">
-                    <i class="fa-solid fa-triangle-exclamation"></i> ¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas.
-                </div>
 
-                <div id="modal-toppings-container" class="mt-3 hidden">
-                    <h4 class="font-bold text-agave text-xs sm:text-sm mb-1.5 flex items-center gap-1">
-                        <i class="fa-solid fa-list-check text-terra"></i> ¿Qué le ponemos?
-                    </h4>
-                    <div id="modal-toppings-list" class="flex flex-wrap gap-1.5 mt-2">
-                        <!-- Toppings generados dinámicamente -->
+                <!-- TOPPINGS SECTION -->
+                <div id="toppings-section" class="bg-white p-2.5 rounded-lg border border-gray-200 shadow-xs">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-agave text-xs sm:text-sm flex items-center gap-1">
+                            <i class="fa-solid fa-leaf text-green-600"></i> ¿Qué le ponemos?
+                        </h4>
+                        <button onclick="toggleSelectAllToppings()" class="text-[10px] bg-corn text-terra font-bold px-2 py-1.5 rounded border border-terra/30 hover:bg-terra hover:text-white transition-colors shadow-sm">
+                            ✨ Con todo
+                        </button>
+                    </div>
+                    <div id="toppings-container" class="flex flex-wrap gap-1.5">
+                        <!-- Botones de topping inyectados por JS -->
                     </div>
                 </div>
+
             </div>
 
             <div class="p-3 bg-gray-50 border-t border-gray-200 flex flex-col gap-2 shrink-0">
                 <div class="flex items-center justify-between bg-white rounded-lg p-2 border border-gray-300 shadow-xs">
                     <span class="font-bold text-charcoal text-xs sm:text-sm">Cantidad:</span>
                     <div class="flex items-center gap-2">
-                        <button onclick="adjustModalQty(-1)" class="w-8 h-8 bg-corn rounded-lg flex items-center justify-center text-charcoal hover:text-terra font-black text-sm btn-press shadow-xs border border-gray-200" aria-label="Menos cantidad">
+                        <button onclick="adjustModalQty(-1)" class="w-8 h-8 bg-corn rounded-lg flex items-center justify-center text-charcoal hover:text-terra font-black text-sm btn-press shadow-xs border border-gray-200">
                             <i class="fa-solid fa-minus"></i>
                         </button>
                         <span id="modal-qty" class="w-6 text-center font-black text-base text-charcoal">1</span>
-                        <button onclick="adjustModalQty(1)" class="w-8 h-8 bg-terra text-white rounded-lg flex items-center justify-center font-black text-sm btn-press shadow-xs hover:bg-terra-hover" aria-label="Más cantidad">
+                        <button onclick="adjustModalQty(1)" class="w-8 h-8 bg-terra text-white rounded-lg flex items-center justify-center font-black text-sm btn-press shadow-xs hover:bg-terra-hover">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
                 </div>
-                <button id="modal-add-btn" onclick="addModalToCart()" class="w-full bg-terra hover:bg-terra-hover text-white font-black py-2.5 px-3 rounded-lg shadow-sm text-xs sm:text-sm transition btn-press flex items-center justify-center gap-1.5">
+                <button id="modal-add-btn" onclick="addModalToCart()" class="w-full bg-terra hover:bg-terra-hover text-white font-black py-2.5 px-3 rounded-lg shadow-sm text-xs sm:text-sm transition btn-press flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden
                 </button>
             </div>
@@ -170,16 +186,16 @@
     <div id="cart-overlay" onclick="toggleCart()" class="overlay fixed inset-0 bg-charcoal/70 z-50 backdrop-blur-xs"></div>
 
     <div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full max-w-xs bg-corn z-50 shadow-2xl flex flex-col">
-        <div class="p-3 border-b border-gray-200 flex justify-between items-center bg-white shadow-xs z-10">
+        <div class="p-3 border-b border-gray-200 flex justify-between items-center bg-white shadow-xs z-10 shrink-0">
             <h2 class="text-base font-black text-charcoal flex items-center gap-1.5">
                 <i class="fa-solid fa-basket-shopping text-terra text-sm"></i> Tu Orden
             </h2>
-            <button onclick="toggleCart()" class="w-8 h-8 bg-gray-100 hover:bg-red-50 text-charcoal hover:text-terra rounded-full transition flex items-center justify-center btn-press border border-gray-200" aria-label="Cerrar orden">
+            <button onclick="toggleCart()" class="w-8 h-8 bg-gray-100 hover:bg-red-50 text-charcoal hover:text-terra rounded-full transition flex items-center justify-center btn-press border border-gray-200">
                 <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
 
-        <div class="bg-amber-100/90 border-b border-amber-200 p-2.5 text-[11px] sm:text-xs text-charcoal font-medium">
+        <div class="bg-amber-100/90 border-b border-amber-200 p-2.5 text-[11px] sm:text-xs text-charcoal font-medium shrink-0">
             <p class="font-bold text-terra mb-0.5 flex items-center gap-1 text-xs">
                 <i class="fa-solid fa-circle-info"></i> Pasos para pedir:
             </p>
@@ -188,11 +204,14 @@
             <p>3. Envía tu pedido por WhatsApp.</p>
         </div>
 
-        <div id="cart-items" class="flex-1 overflow-y-auto p-2.5 space-y-2 no-scrollbar bg-corn relative"></div>
+        <!-- ITEMS CONTAINER CON SCROLLBAR -->
+        <div id="cart-items" class="flex-1 overflow-y-auto cart-scroll p-2.5 space-y-2 bg-corn relative"></div>
 
-        <div class="p-3 border-t border-gray-200 bg-white shadow-[0_-8px_16px_-4px_rgba(26,51,38,0.08)] z-10 relative">
-            <div id="cart-warning" class="hidden text-terra text-[11px] font-bold mb-2 text-center bg-orange-50 p-2 rounded-lg border border-orange-200">
-                <i class="fa-solid fa-circle-exclamation mr-1"></i> Agrega al menos un producto a tu orden.
+        <!-- SECCIÓN DE COBRO (PROTEGIDA AL FONDO) -->
+        <div class="p-3 border-t border-gray-200 bg-white shadow-[0_-8px_16px_-4px_rgba(26,51,38,0.08)] z-10 relative shrink-0">
+            
+            <div id="cart-warning" class="hidden text-terra text-[11px] font-bold mb-2 text-center bg-orange-50 p-2 rounded-lg border border-orange-200 transition-opacity">
+                <!-- JavaScript inyectará el aviso aquí -->
             </div>
 
             <div id="reserve-box" class="hidden mb-2.5 bg-orange-50 border border-orange-200 rounded-lg p-2.5 text-[11px]">
@@ -210,32 +229,29 @@
                 </div>
             </div>
 
-            <div class="mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
+            <div class="mb-2 bg-white border border-gray-200 rounded-lg p-2 shadow-sm text-[11px]">
                 <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
                     <i class="fa-solid fa-bell-concierge text-terra"></i> Tipo de pedido
                 </p>
-                <select id="order-type" onchange="handleOrderTypeChange()" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                <select id="order-type" onchange="window.handleOrderTypeChange()" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
                     <option value="Comer en el local">🍽️ Comer en el local</option>
                     <option value="Pasar a recoger">🛍️ Pasar a recoger (Pick-up)</option>
                     <option value="Envío a domicilio">🛵 Envío a domicilio</option>
                 </select>
             </div>
 
-            <div id="delivery-box" class="hidden mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
-                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
-                    <i class="fa-solid fa-map-location-dot text-terra"></i> Tu ubicación de entrega
+            <!-- BOTÓN DEL MAPA (OCULTO POR DEFECTO) -->
+            <div id="delivery-box" class="hidden mb-2 bg-blue-50 border border-blue-200 rounded-lg p-2 text-[11px]">
+                <p class="font-bold text-blue-800 mb-1.5 text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-map-location-dot"></i> Domicilio (Máx 6km)
                 </p>
-                <p class="text-charcoal-light text-[10px] mb-2 font-medium">Usa tu ubicación actual o mueve el marcador azul a tu domicilio (área máx. 5 km).</p>
-                <button onclick="requestUserLocation()" class="mb-2 w-full bg-gray-100 hover:bg-gray-200 border border-gray-300 text-charcoal font-bold py-1.5 px-2 rounded-lg text-[10px] transition-colors flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-location-crosshairs"></i> Usar mi ubicación actual
+                <button onclick="window.openMapModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2 rounded-md shadow-sm transition-colors flex items-center justify-center gap-1.5 btn-press">
+                    <i class="fa-solid fa-expand"></i> Abrir Mapa en Pantalla Completa
                 </button>
-                <div id="map" class="w-full h-40 rounded border border-gray-300 shadow-inner z-0" style="z-index: 10;"></div>
-                <div id="delivery-status" class="mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-gray-100 text-gray-600 transition-colors">
-                    Mueve el mapa para validar zona...
-                </div>
+                <p id="delivery-status-text" class="mt-1.5 font-bold text-center text-[10px] text-gray-500">Ubicación pendiente</p>
             </div>
 
-            <div class="mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
+            <div class="mb-2 bg-white border border-gray-200 rounded-lg p-2 shadow-sm text-[11px]">
                 <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
                     <i class="fa-solid fa-wallet text-terra"></i> Método de pago
                 </p>
@@ -246,13 +262,44 @@
                 </select>
             </div>
 
-            <div class="flex justify-between items-end mb-2.5 pt-0.5">
+            <div class="flex justify-between items-end mb-2 pt-0.5">
                 <span class="text-charcoal font-bold text-sm">Total a pagar:</span>
                 <span id="cart-total" class="text-xl font-black text-terra tracking-tight">$0.00</span>
             </div>
-            <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-2.5 px-3 rounded-lg shadow-sm flex justify-center items-center gap-1.5 transition-colors text-xs sm:text-sm btn-press">
+            <button onclick="window.sendToWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-black py-2.5 px-3 rounded-lg shadow-sm flex justify-center items-center gap-1.5 transition-colors text-xs sm:text-sm btn-press">
                 <i class="fa-brands fa-whatsapp text-lg"></i>
                 <span id="send-label">Pedir por WhatsApp</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="map-modal" class="map-fullscreen fixed inset-0 bg-white z-[70] flex flex-col shadow-2xl">
+        <div class="bg-agave text-white px-4 py-3 flex justify-between items-center shadow-md z-10 shrink-0">
+            <div>
+                <h3 class="font-black text-base flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-terra"></i> Confirma tu ubicación
+                </h3>
+                <p class="text-[10px] text-corn/80 mt-0.5">Área de entrega máxima: 6 kilómetros</p>
+            </div>
+            <button onclick="window.closeMapModal()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 relative z-0">
+            <div id="map" class="w-full h-full"></div>
+            
+            <button onclick="window.requestUserLocation()" class="absolute bottom-6 right-4 z-[400] bg-white text-agave w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg border border-gray-200 hover:text-terra transition-colors" title="Mi ubicación">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+        </div>
+
+        <div class="bg-white p-4 border-t border-gray-200 shadow-[0_-8px_16px_rgba(0,0,0,0.1)] z-10 shrink-0 flex flex-col gap-2">
+            <div id="fullscreen-map-status" class="text-center font-bold text-xs p-2 rounded-lg bg-gray-50 border border-gray-200">
+                Mueve el marcador a tu dirección exacta.
+            </div>
+            <button id="confirm-location-btn" onclick="window.closeMapModal()" class="w-full bg-terra hover:bg-terra-hover text-white font-black py-3 rounded-lg shadow-md transition-colors btn-press flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check"></i> Confirmar Ubicación
             </button>
         </div>
     </div>
@@ -278,15 +325,36 @@
     </div>
 
     <script>
-        const PHONE_NUMBER = "525539894750"; // +52 55 3989 4750
+        const PHONE_NUMBER = "525539894750";
         const TIMEZONE = "America/Mexico_City";
+        
         const SCHEDULE = {
-            4: { open: 18 * 60, close: 23 * 60 }, // Jueves 6:00 pm - 11:00 pm
-            5: { open: 18 * 60, close: 23 * 60 }  // Viernes 6:00 pm - 11:00 pm
+            4: { open: 18 * 60, close: 23 * 60 },
+            5: { open: 18 * 60, close: 23 * 60 } 
         };
         const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
+        const TAQUERIA_COORDS = { lat: 19.31863, lng: -98.91212 };
+        const MAX_DISTANCE_KM = 6;
+        
+        let storeOpen = true;
+        let lastSlotsKey = '';
+        let cart = [];
+        let currentModalItem = null;
+        let modalQuantity = 1;
+        let currentToppings = [];
+        let currentAvailableToppings = [];
+
+        window.mapInstance = null;
+        window.marker = null;
+        window.userCoords = null;
+        window.deliveryValid = true;
+
+        const baseToppingsList = ["Cilantro", "Cebolla", "Limón", "Salsa Verde", "Salsa Roja"];
+        const extraToppingsList = ["Papa", "Nopales"];
+
+        // Helper time functions
         function getNow() {
             const parts = new Intl.DateTimeFormat('en-US', {
                 timeZone: TIMEZONE, weekday: 'short', year: 'numeric', month: 'numeric',
@@ -321,9 +389,6 @@
             }
             return { isOpen, today, slots };
         }
-
-        let storeOpen = true;
-        let lastSlotsKey = '';
 
         function updateStatus() {
             const { isOpen, today, slots } = getStatus();
@@ -366,18 +431,11 @@
             }
         }
 
+        /* Menu Data Logic */
         const IMG_PATH = 'img/';
         const imgSrc = filename => `${IMG_PATH}${filename}.jpeg`;
 
-        const TACO_IMG = {
-            pastor: 'Pastor',
-            bistec: 'Bistec',
-            longaniza: 'Longaniza',
-            pechuga: 'Pechuga',
-            chorizo: 'Chorizoargentino',
-            campechano: 'Campechano2'
-        };
-
+        const TACO_IMG = { pastor: 'Pastor', bistec: 'Bistec', longaniza: 'Longaniza', pechuga: 'Pechuga', chorizo: 'Chorizoargentino', campechano: 'Campechano2' };
         const meats = [
             { idSuffix: 'pastor', name: 'al Pastor' },
             { idSuffix: 'bistec', name: 'de Bistec' },
@@ -388,251 +446,54 @@
             { idSuffix: 'campechano', name: 'Campechano' }
         ];
 
-        const generateItems = (prefixId, baseName, price, imageFile) => {
+        const generateItems = (prefixId, baseName, price, imageFile, extraProps = {}) => {
             return meats.map(meat => ({
                 id: `${prefixId}-${meat.idSuffix}`,
                 name: `${baseName} ${meat.name}`,
                 price: price,
                 image: typeof imageFile === 'function' ? imageFile(meat.idSuffix) : imageFile,
-                desc: `Disfruta de este extraordinario ${baseName.toLowerCase()} ${meat.name.toLowerCase()} preparado al carbón con nuestra receta secreta de la casa. Carne jugosa, marinada a la perfección, servida en tortilla recién hecha con cilantro, cebolla y nuestras salsas artesanales que te harán agua la boca. ¡Una verdadera obra maestra de sabor inigualable!`
+                desc: `Disfruta de este extraordinario ${baseName.toLowerCase()} ${meat.name.toLowerCase()} preparado al carbón con nuestra receta secreta de la casa. Carne jugosa, marinada a la perfección, servida en tortilla recién hecha.`,
+                ...extraProps
             }));
         };
 
         const menuData = [
-            { 
-                category: "Tacos", 
-                items: generateItems('t', 'Taco', 24, k => TACO_IMG[k]) 
-            },
-            { 
-                category: "Tortas", 
-                items: generateItems('tor', 'Torta', 40, 'Torta').map(i => ({
-                    ...i,
-                    desc: `Nuestra famosa torta crujiente por fuera y suave por dentro, rebosante con carne al carbón recién asada, aguacate fresco, jitomate, frijolitos y queso fundido. ¡Una delicia gigante y súper llenadora que no te puedes perder!`
-                })) 
-            },
-            { 
-                category: "Gringas", 
-                items: generateItems('g', 'Gringa', 55, 'Gringas').map(i => ({
-                    ...i,
-                    desc: `Exquisita tortilla de harina grande doradita al comal con generosas capas de queso Oaxaca fundido al momento y tu carne favorita. ¡La combinación perfecta de queso derretido y sabor ahumado que enamora a todos!`
-                })) 
-            },
-            { 
-                category: "Quesatacos", 
-                items: generateItems('q', 'Quesataco', 50, 'Quesataco').map(i => ({
-                    ...i,
-                    desc: `El antojito supremo: tortilla dorada con costra de queso crujiente por fuera y jugosa carne adentro. ¡Una explosión de texturas y sabor supremo en cada mordisco!`
-                })) 
-            },
-            { 
-                category: "Volcanes", 
-                items: generateItems('v', 'Volcán', 25, 'Pastor2').map(i => ({
-                    ...i,
-                    desc: `Tortilla doradita y crujiente al carbón cubierta de queso gratinado burbujeante y tu carne favorita coronada con verdura fresca. ¡Simplemente adictivo!`
-                })) 
-            },
+            { category: "Tacos", items: generateItems('t', 'Taco', 24, k => TACO_IMG[k]) },
+            { category: "Tortas", items: generateItems('tor', 'Torta', 40, 'Torta').map(i => ({...i, desc: `Nuestra famosa torta crujiente por fuera y suave por dentro, rebosante con carne al carbón recién asada.`})) },
+            { category: "Gringas", items: generateItems('g', 'Gringa', 55, 'Gringas').map(i => ({...i, desc: `Exquisita tortilla de harina grande doradita al comal con generosas capas de queso Oaxaca fundido al momento.`})) },
+            { category: "Quesatacos", items: generateItems('q', 'Quesataco', 50, 'Quesataco').map(i => ({...i, desc: `El antojito supremo: tortilla dorada con costra de queso crujiente por fuera y jugosa carne adentro.`})) },
+            { category: "Volcanes", items: generateItems('v', 'Volcán', 25, 'Pastor2').map(i => ({...i, desc: `Tortilla doradita y crujiente al carbón cubierta de queso gratinado burbujeante.`})) },
             { 
                 category: "Órdenes (Viernes)", 
-                items: generateItems('o', 'Orden de 5 Tacos', 100, 'Orden de tacos').map(i => ({
-                    ...i,
-                    onlyFriday: true,
-                    desc: `Nuestra clásica orden especial de 5 tacos para consentir a toda la familia. Incluye tus 5 tacos favoritos acompañados de papitas cambray, cebollitas asadas y chiles toreados. ¡Exclusivo de los Viernes!`
+                items: generateItems('o', 'Orden de 5 Tacos', 100, 'Orden de tacos', { onlyFriday: true }).map(i => ({
+                    ...i, desc: `Nuestra clásica orden de 5 tacos para consentir a toda la familia. Incluye tus tacos favoritos acompañados de papitas cambray, cebollitas asadas y chiles toreados.`
                 })) 
             },
-            { 
-                category: "Chiles Rellenos", 
-                items: generateItems('c', 'Chile Relleno Asado', 15, 'Chilerellenoconcarne').map(i => ({
-                    ...i,
-                    desc: `Chile asado al carbón relleno de jugosa carne y toque de queso. El complemento picocito y sabroso ideal para elevar la experiencia de tus tacos.`
-                })) 
-            },
+            { category: "Chiles Rellenos", items: generateItems('c', 'Chile Relleno Asado', 15, 'Chilerellenoconcarne').map(i => ({...i, desc: `Chile asado al carbón relleno de jugosa carne y toque de queso.`})) },
             {
                 category: "Alambres",
                 items: [
-                    ...generateItems('a', 'Alambre', 110, 'Grnga2').map(i => ({
-                        ...i,
-                        desc: `Delicioso alambre preparado con abundante carne jugosa, pimientos asados, cebolla acitronada y mucho queso Oaxaca derretido al carbón. ¡Para compartir o disfrutar al máximo!`
-                    })),
-                    {
-                        id: 'a-combinado',
-                        name: 'Alambre Combinado',
-                        price: 110,
-                        image: 'Grnga2',
-                        desc: 'Arma tu alambre combinando tus carnes favoritas con pimientos, cebolla y queso derretido. ¡Especifica tus carnes al enviar tu pedido por WhatsApp!'
-                    }
+                    ...generateItems('a', 'Alambre', 110, 'Grnga2').map(i => ({...i, desc: `Delicioso alambre preparado con abundante carne jugosa, pimientos asados, cebolla y queso Oaxaca.`})),
+                    { id: 'a-combinado', name: 'Alambre Combinado', price: 110, image: 'Grnga2', desc: 'Arma tu alambre combinando tus carnes favoritas. ¡Especifica tus carnes en WhatsApp!' }
                 ]
             },
             {
                 category: "Extras",
                 items: [
                     { id: 'ex-volcanes', name: 'Volcanes', price: 25, image: 'Pastor2', desc: 'Tortilla crujiente con queso gratinado y carne al carbón.' },
-                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, image: 'Cebollitas', desc: 'Cebollitas cambray asadas al carbón con su toque de limón y sal.' },
+                    { id: 'ex-cebollitas', name: 'Cebollitas', price: 20, image: 'Cebollitas', desc: 'Cebollitas cambray asadas al carbón.' },
                     { id: 'ex-chiles', name: 'Chiles c/q', price: 10, image: 'Chilerellenoconcarne', desc: 'Chiles toreados o rellenos preparados al carbón.' }
                 ]
             },
-            {
-                category: "Bebidas",
-                items: [{ id: 'b-refresco', name: 'Refresco', price: 25, image: 'Pastor', desc: 'Refresco bien frío en presentación de vidrio o lata para acompañar tus tacos.' }]
-            }
+            { category: "Bebidas", items: [{ id: 'b-refresco', name: 'Refresco', price: 25, image: 'Pastor', desc: 'Refresco bien frío en vidrio o lata.' }] }
         ];
 
-        let cart = [];
-        let currentModalItem = null;
-        let modalQuantity = 1;
-
         const allMenuItems = {};
-        menuData.forEach(section => {
-            section.items.forEach(item => {
-                allMenuItems[item.id] = { ...item, category: section.category };
-            });
-        });
-
-        function toggleAllToppings(masterCheckbox) {
-            const isChecked = masterCheckbox.checked;
-            const checkboxes = document.querySelectorAll('.single-topping');
-            checkboxes.forEach(cb => {
-                cb.checked = isChecked;
-            });
-        }
-
-        function updateConTodoState() {
-            const checkboxes = document.querySelectorAll('.single-topping');
-            const master = document.getElementById('topping-contodo');
-            if(!master) return;
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            master.checked = allChecked;
-        }
-
-        function openProductModalById(id) {
-            const item = allMenuItems[id];
-            if (!item) return;
-
-            currentModalItem = { id: item.id, name: item.name, price: item.price, category: item.category };
-            modalQuantity = 1;
-            
-            document.getElementById('modal-title').innerText = item.name;
-            document.getElementById('modal-price').innerText = `$${item.price.toFixed(2)}`;
-            document.getElementById('modal-desc').innerText = item.desc;
-            document.getElementById('modal-qty').innerText = '1';
-            
-            const warningEl = document.getElementById('modal-friday-warning');
-            const addBtn = document.getElementById('modal-add-btn');
-            
-            if (item.onlyFriday) {
-                warningEl.classList.remove('hidden');
-                
-                const now = getNow();
-                // Si la sucursal está abierta y HOY NO es Viernes (es Jueves), bloqueamos el botón desde raíz.
-                if (storeOpen && now.dow !== 5) {
-                    addBtn.disabled = true;
-                    addBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
-                    addBtn.classList.remove('hover:bg-terra-hover', 'bg-terra', 'btn-press');
-                    addBtn.innerHTML = `<i class="fa-solid fa-lock text-xs"></i> Solo en Viernes`;
-                } else {
-                    addBtn.disabled = false;
-                    addBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
-                    addBtn.classList.add('hover:bg-terra-hover', 'bg-terra', 'btn-press');
-                    addBtn.innerHTML = `<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden`;
-                }
-            } else {
-                warningEl.classList.add('hidden');
-                addBtn.disabled = false;
-                addBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
-                addBtn.classList.add('hover:bg-terra-hover', 'bg-terra', 'btn-press');
-                addBtn.innerHTML = `<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden`;
-            }
-            
-            const toppingsContainer = document.getElementById('modal-toppings-container');
-            const toppingsList = document.getElementById('modal-toppings-list');
-
-            if (item.category === 'Bebidas') {
-                toppingsContainer.classList.add('hidden');
-            } else {
-                toppingsContainer.classList.remove('hidden');
-                let toppingsHTML = `
-                    <label class="cursor-pointer select-none">
-                        <input type="checkbox" id="topping-contodo" class="peer hidden" onchange="toggleAllToppings(this)">
-                        <div class="bg-gray-100 peer-checked:bg-agave peer-checked:text-white border border-gray-300 peer-checked:border-agave rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm">
-                            ✨ Con todo
-                        </div>
-                    </label>
-                `;
-
-                const baseToppings = ['Cilantro', 'Cebolla', 'Limón', 'Salsa Verde', 'Salsa Roja'];
-                const isTaco = item.category === 'Tacos' || item.category === 'Órdenes (Viernes)';
-                const extraToppings = isTaco ? ['Papas', 'Nopales'] : [];
-                const allT = [...baseToppings, ...extraToppings];
-
-                allT.forEach(t => {
-                    toppingsHTML += `
-                        <label class="cursor-pointer select-none">
-                            <input type="checkbox" name="toppings" value="${t}" class="peer hidden single-topping" onchange="updateConTodoState()">
-                            <div class="bg-gray-100 peer-checked:bg-terra peer-checked:text-white border border-gray-300 peer-checked:border-terra rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors shadow-sm">
-                                ${t}
-                            </div>
-                        </label>
-                    `;
-                });
-                toppingsList.innerHTML = toppingsHTML;
-            }
-
-            const imgEl = document.getElementById('modal-img');
-            imgEl.src = imgSrc(item.image);
-            imgEl.onerror = function() {
-                this.src = 'https://placehold.co/400x300/1A3326/fdf8e7?text=PATAQUEARTE';
-            };
-
-            document.getElementById('product-modal').classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.remove('open');
-            document.body.style.overflow = '';
-            currentModalItem = null;
-        }
-
-        function adjustModalQty(change) {
-            modalQuantity += change;
-            if (modalQuantity < 1) modalQuantity = 1;
-            document.getElementById('modal-qty').innerText = modalQuantity;
-        }
-
-        function addModalToCart() {
-            if (!currentModalItem) return;
-
-            let selectedToppings = [];
-            if (currentModalItem.category !== 'Bebidas') {
-                const checkboxes = document.querySelectorAll('.single-topping:checked');
-                selectedToppings = Array.from(checkboxes).map(cb => cb.value);
-            }
-
-            // Crear un ID único para el carrito que incluya los complementos elegidos
-            const cartItemId = currentModalItem.id + '|' + selectedToppings.sort().join('|');
-
-            const existingIndex = cart.findIndex(item => item.cartItemId === cartItemId);
-            if (existingIndex > -1) {
-                cart[existingIndex].quantity += modalQuantity;
-            } else {
-                cart.push({ 
-                    cartItemId: cartItemId,
-                    id: currentModalItem.id, 
-                    name: currentModalItem.name, 
-                    price: currentModalItem.price, 
-                    quantity: modalQuantity,
-                    toppings: selectedToppings
-                });
-            }
-            showToast(`¡Agregado: ${modalQuantity}x ${currentModalItem.name}!`);
-            triggerCartAnimation();
-            updateCartUI();
-            closeProductModal();
-        }
+        menuData.forEach(section => { section.items.forEach(item => { allMenuItems[item.id] = item; }); });
 
         function renderMenu() {
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
-
             menuData.forEach((section, index) => {
                 const sectionHTML = document.createElement('div');
                 sectionHTML.className = `stagger-fade-in`;
@@ -640,24 +501,21 @@
 
                 let itemsHTML = section.items.map(item => `
                     <div onclick="openProductModalById('${item.id}')" class="product-card bg-white rounded-xl premium-shadow p-2.5 flex gap-2.5 h-full border border-gray-100 relative overflow-hidden group">
-                        ${item.onlyFriday ? `<span class="absolute top-2 left-2 bg-agave text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm border border-white/20 z-20"><i class="fa-solid fa-calendar-day mr-1"></i>Solo Viernes</span>` : ''}
                         <div class="absolute top-0 right-0 w-16 h-16 bg-corn rounded-bl-[50px] -z-0 opacity-60"></div>
                         
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-200 z-10 overflow-hidden shadow-xs">
+                        ${item.onlyFriday ? `<div class="absolute top-0 left-0 bg-terra text-white text-[9px] font-black px-1.5 py-0.5 rounded-br-lg shadow-sm z-20 uppercase"><i class="fa-solid fa-calendar-day"></i> Solo Viernes</div>` : ''}
+                        
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-200 z-10 overflow-hidden shadow-xs mt-1">
                             <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-[10px] font-bold p-1 text-center', innerText: 'PA\\'TAQUEARTE'}))">
                         </div>
-
-                        <div class="flex-1 flex flex-col justify-between z-10 min-w-0">
+                        <div class="flex-1 flex flex-col justify-between z-10 min-w-0 mt-1">
                             <div>
                                 <h4 class="font-black text-charcoal text-xs sm:text-sm leading-tight group-hover:text-terra transition-colors">${item.name}</h4>
-                                <p class="text-[10px] sm:text-xs text-charcoal-light mt-0.5 font-semibold flex items-center gap-1">
-                                    <i class="fa-solid fa-hand-pointer text-terra text-[10px]"></i> Toca para ver y pedir
-                                </p>
                             </div>
                             <div class="flex justify-between items-center mt-1.5 pt-1 border-t border-gray-100">
                                 <span class="font-black text-terra text-sm sm:text-base">$${item.price.toFixed(2)}</span>
                                 <div class="bg-terra hover:bg-terra-hover text-white font-bold px-2 py-1 rounded text-[11px] transition-colors shadow-xs flex items-center gap-1 btn-press">
-                                    <i class="fa-solid fa-eye text-[10px]"></i> Ver
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
                                 </div>
                             </div>
                         </div>
@@ -677,23 +535,125 @@
             });
         }
 
-        function getCartItem(id) {
-            return cart.find(item => item.id === id);
+        // Toppings System
+        window.toggleTopping = function(topping) {
+            if (currentToppings.includes(topping)) {
+                currentToppings = currentToppings.filter(t => t !== topping);
+            } else {
+                currentToppings.push(topping);
+            }
+            renderToppingsUI();
+        };
+
+        window.toggleSelectAllToppings = function() {
+            // Si ya están todos seleccionados, los deselecciona todos. Si falta alguno, los selecciona todos.
+            if (currentToppings.length === currentAvailableToppings.length) {
+                currentToppings = [];
+            } else {
+                currentToppings = [...currentAvailableToppings];
+            }
+            renderToppingsUI();
+        };
+
+        function renderToppingsUI() {
+            const container = document.getElementById('toppings-container');
+            container.innerHTML = currentAvailableToppings.map(t => {
+                const active = currentToppings.includes(t);
+                return `<button type="button" onclick="window.toggleTopping('${t}')" class="px-2.5 py-1.5 rounded-full border text-[11px] font-bold transition-colors shadow-sm btn-press ${active ? 'bg-terra text-white border-terra' : 'bg-gray-50 text-charcoal-light border-gray-300'}">${t}</button>`;
+            }).join('');
         }
 
-        function triggerCartAnimation() {
+        function openProductModalById(id) {
+            const item = allMenuItems[id];
+            if (!item) return;
+
+            currentModalItem = { id: item.id, name: item.name, price: item.price };
+            modalQuantity = 1;
+            currentToppings = [];
+            
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-price').innerText = `$${item.price.toFixed(2)}`;
+            document.getElementById('modal-desc').innerText = item.desc;
+            document.getElementById('modal-qty').innerText = '1';
+            
+            const imgEl = document.getElementById('modal-img');
+            imgEl.src = imgSrc(item.image);
+            imgEl.onerror = function() { this.src = 'https://placehold.co/400x300/1A3326/fdf8e7?text=PATAQUEARTE'; };
+
+            // Logic for Friday only
+            const warningEl = document.getElementById('modal-friday-warning');
+            const addBtn = document.getElementById('modal-add-btn');
+            const now = getNow();
+            
+            if (item.onlyFriday) {
+                warningEl.classList.remove('hidden');
+                if (storeOpen && now.dow !== 5) {
+                    addBtn.disabled = true;
+                    addBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Solo en Viernes';
+                } else {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden';
+                }
+            } else {
+                warningEl.classList.add('hidden');
+                addBtn.disabled = false;
+                addBtn.innerHTML = '<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden';
+            }
+
+            // Logic for Toppings
+            const isBeverage = item.id.startsWith('b-');
+            const isTacoOrOrden = item.id.startsWith('t-') || item.id.startsWith('o-');
+            const toppingsSection = document.getElementById('toppings-section');
+            
+            if (isBeverage || item.id.startsWith('ex-')) {
+                toppingsSection.classList.add('hidden');
+                currentAvailableToppings = [];
+            } else {
+                toppingsSection.classList.remove('hidden');
+                currentAvailableToppings = isTacoOrOrden ? [...baseToppingsList, ...extraToppingsList] : [...baseToppingsList];
+                // Iniciar vacíos por defecto (ninguno seleccionado al abrir)
+                currentToppings = [];
+                renderToppingsUI();
+            }
+
+            document.getElementById('product-modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.closeProductModal = function() {
+            document.getElementById('product-modal').classList.remove('open');
+            document.body.style.overflow = '';
+            currentModalItem = null;
+        }
+
+        window.adjustModalQty = function(change) {
+            modalQuantity += change;
+            if (modalQuantity < 1) modalQuantity = 1;
+            document.getElementById('modal-qty').innerText = modalQuantity;
+        }
+
+        window.addModalToCart = function() {
+            if (!currentModalItem) return;
+            const existing = cart.find(i => i.id === currentModalItem.id && JSON.stringify(i.toppings) === JSON.stringify(currentToppings));
+            
+            if (existing) {
+                existing.quantity += modalQuantity;
+            } else {
+                cart.push({ ...currentModalItem, quantity: modalQuantity, toppings: [...currentToppings] });
+            }
+            
+            showToast(`¡Agregado: ${modalQuantity}x ${currentModalItem.name}!`);
             const btn = document.getElementById('cart-btn');
             btn.classList.remove('animate-pop');
             void btn.offsetWidth;
             btn.classList.add('animate-pop');
+            updateCartUI();
+            closeProductModal();
         }
 
-        function updateQuantity(cartItemId, change) {
-            const itemIndex = cart.findIndex(item => item.cartItemId === cartItemId);
-            if (itemIndex > -1) {
-                cart[itemIndex].quantity += change;
-                if (cart[itemIndex].quantity <= 0) cart.splice(itemIndex, 1);
-            }
+        window.updateQuantity = function(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) cart.splice(index, 1);
             updateCartUI();
         }
 
@@ -705,7 +665,6 @@
             if (totalItems > 0) {
                 badge.style.transform = 'scale(1)';
                 document.getElementById('cart-warning').classList.add('hidden');
-                document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Agrega al menos un producto a tu orden.`;
             } else {
                 badge.style.transform = 'scale(0)';
             }
@@ -719,12 +678,11 @@
                         </div>
                         <p class="font-black text-charcoal text-sm">Tu orden está vacía</p>
                         <p class="text-[11px] mt-0.5 text-charcoal-light font-medium">Toca cualquier platillo para agregarlo</p>
-                    </div>
-                `;
+                    </div>`;
             } else {
-                cartItemsContainer.innerHTML = cart.map(item => {
-                    const toppingsText = item.toppings && item.toppings.length > 0
-                        ? `<p class="text-[9.5px] sm:text-[10.5px] text-charcoal-light mt-0.5 leading-tight font-medium"><i class="fa-solid fa-check text-terra mr-0.5"></i> Con: ${item.toppings.join(', ')}</p>`
+                cartItemsContainer.innerHTML = cart.map((item, index) => {
+                    const toppingsText = item.toppings && item.toppings.length > 0 
+                        ? `<p class="text-[9px] text-gray-500 leading-tight mt-0.5"><i class="fa-solid fa-leaf text-green-600"></i> Con: ${item.toppings.join(', ')}</p>` 
                         : '';
                     
                     return `
@@ -735,16 +693,15 @@
                             <p class="text-terra font-black mt-0.5 text-xs sm:text-sm">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                         <div class="flex items-center gap-1 bg-corn rounded-lg p-1 border border-gray-300 shadow-xs shrink-0">
-                            <button onclick="updateQuantity('${item.cartItemId}', -1)" class="btn-press w-7 h-7 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition focus:outline-none" aria-label="Disminuir cantidad">
+                            <button onclick="window.updateQuantity(${index}, -1)" class="btn-press w-7 h-7 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition">
                                 <i class="fa-solid fa-minus"></i>
                             </button>
                             <span class="w-5 text-center font-black text-xs text-charcoal">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.cartItemId}', 1)" class="btn-press w-7 h-7 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition focus:outline-none" aria-label="Aumentar cantidad">
+                            <button onclick="window.updateQuantity(${index}, 1)" class="btn-press w-7 h-7 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 }).join('');
             }
 
@@ -752,14 +709,16 @@
             document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
         }
 
-        function toggleCart() {
+        window.toggleCart = function() {
             const sidebar = document.getElementById('cart-sidebar');
             const overlay = document.getElementById('cart-overlay');
-
             sidebar.classList.toggle('open');
             overlay.classList.toggle('open');
-
-            document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
         }
 
         let toastTimeout;
@@ -771,197 +730,193 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        const TAQUERIA_COORDS = { lat: 19.31863, lng: -98.91212 }; // Cerro del Tejolote, Ixtapaluca
-        const MAX_DISTANCE_KM = 5;
-        let map, marker, userCoords = null, deliveryValid = true;
+        // Temporary 5-second cart warning
+        let cartWarningTimeout;
+        function showCartWarning(msg) {
+            const warningBox = document.getElementById('cart-warning');
+            warningBox.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${msg}`;
+            warningBox.classList.remove('hidden');
+            
+            clearTimeout(cartWarningTimeout);
+            cartWarningTimeout = setTimeout(() => {
+                warningBox.classList.add('hidden');
+            }, 5000);
+        }
 
+        /* --- MAP & DELIVERY LOGIC --- */
+        
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radio de la Tierra
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                       Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
         }
 
-        function handleOrderTypeChange() {
+        window.handleOrderTypeChange = function() {
             const type = document.getElementById('order-type').value;
             const deliveryBox = document.getElementById('delivery-box');
             if (type === 'Envío a domicilio') {
                 deliveryBox.classList.remove('hidden');
-                if (!map) {
-                    setTimeout(initMap, 300); // Esperar a que el panel se abra
-                } else {
-                    map.invalidateSize();
-                }
-                if(userCoords) checkDeliveryStatus();
+                if (window.userCoords) window.checkDeliveryStatus();
+                else window.deliveryValid = false;
             } else {
                 deliveryBox.classList.add('hidden');
-                deliveryValid = true; 
+                window.deliveryValid = true; 
             }
-        }
+        };
 
-        function initMap() {
-            map = L.map('map').setView([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], 13);
+        window.openMapModal = function() {
+            document.getElementById('map-modal').classList.add('open');
+            if (!window.mapInstance) {
+                setTimeout(window.initMap, 300);
+            } else {
+                setTimeout(() => window.mapInstance.invalidateSize(), 300);
+            }
+        };
+
+        window.closeMapModal = function() {
+            document.getElementById('map-modal').classList.remove('open');
+        };
+
+        window.initMap = function() {
+            if(window.mapInstance || typeof L === 'undefined') return;
+            window.mapInstance = L.map('map').setView([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OSM'
-            }).addTo(map);
+                attribution: '© OpenStreetMap'
+            }).addTo(window.mapInstance);
 
-            // Marcador de la Taquería
-            L.circleMarker([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], {
-                color: '#1A3326', fillColor: '#1A3326', fillOpacity: 1, radius: 5
-            }).addTo(map).bindPopup("<b>PA'TAQUEARTE</b><br>Loma Chica 14A").openPopup();
-
-            // Círculo de cobertura
             L.circle([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], {
                 color: '#cc5500', fillColor: '#cc5500', fillOpacity: 0.1, radius: MAX_DISTANCE_KM * 1000
-            }).addTo(map);
+            }).addTo(window.mapInstance);
 
-            // Marcador del usuario
-            userCoords = { lat: TAQUERIA_COORDS.lat, lng: TAQUERIA_COORDS.lng };
-            marker = L.marker([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], { draggable: true }).addTo(map);
-
-            marker.on('dragend', function (e) {
-                userCoords = marker.getLatLng();
-                checkDeliveryStatus();
+            window.marker = L.marker([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], {draggable: true}).addTo(window.mapInstance);
+            
+            window.marker.on('dragend', function() {
+                window.userCoords = window.marker.getLatLng();
+                window.checkDeliveryStatus();
             });
 
-            map.on('click', function (e) {
-                marker.setLatLng(e.latlng);
-                userCoords = e.latlng;
-                checkDeliveryStatus();
+            window.mapInstance.on('click', function(e) {
+                window.marker.setLatLng(e.latlng);
+                window.userCoords = e.latlng;
+                window.checkDeliveryStatus();
             });
+        };
 
-            checkDeliveryStatus();
-        }
-        
-        function requestUserLocation() {
-            if ("geolocation" in navigator) {
-                showToast("Buscando tu ubicación...");
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    if(map && marker) {
-                        userCoords = { lat, lng };
-                        marker.setLatLng([lat, lng]);
-                        map.setView([lat, lng], 15);
-                        checkDeliveryStatus();
-                        showToast("¡Ubicación encontrada!");
-                    }
-                }, function(err) {
-                    showToast("No pudimos obtener tu ubicación. Mueve el marcador.");
-                });
-            } else {
-                showToast("Geolocalización no soportada por el navegador.");
+        window.requestUserLocation = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        window.userCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        if (window.mapInstance && window.marker) {
+                            window.marker.setLatLng([window.userCoords.lat, window.userCoords.lng]);
+                            window.mapInstance.setView([window.userCoords.lat, window.userCoords.lng], 15);
+                        }
+                        window.checkDeliveryStatus();
+                        showToast("Ubicación actual obtenida");
+                    },
+                    (error) => { showToast("Mueve el marcador manualmente."); }
+                );
             }
-        }
+        };
 
-        function checkDeliveryStatus() {
-            if (!userCoords) return;
-            const dist = calculateDistance(TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng, userCoords.lat, userCoords.lng);
-            const statusBox = document.getElementById('delivery-status');
+        window.checkDeliveryStatus = function() {
+            if (!window.userCoords) return;
+            const dist = calculateDistance(TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng, window.userCoords.lat, window.userCoords.lng);
+            
+            const fullscreenStatus = document.getElementById('fullscreen-map-status');
+            const cartStatus = document.getElementById('delivery-status-text');
+            const confirmBtn = document.getElementById('confirm-location-btn');
 
             if (dist <= MAX_DISTANCE_KM) {
-                deliveryValid = true;
-                statusBox.className = 'mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-[#e8f5e9] text-[#2e7d32] border border-[#a5d6a7]';
-                statusBox.innerHTML = `<i class="fa-solid fa-check-circle"></i> A ${dist.toFixed(1)} km. ¡Estás dentro de la zona!`;
+                const kmMsg = `Aprox. ${dist.toFixed(1)} km de distancia.`;
+                fullscreenStatus.innerHTML = `<span class="text-green-600"><i class="fa-solid fa-circle-check"></i> Dentro de zona.</span> ${kmMsg}`;
+                cartStatus.innerHTML = `<span class="text-green-600"><i class="fa-solid fa-circle-check"></i> Zona válida (${dist.toFixed(1)} km)</span>`;
+                confirmBtn.disabled = false;
+                confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                window.deliveryValid = true;
             } else {
-                deliveryValid = false;
-                statusBox.className = 'mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-[#ffebee] text-[#c62828] border border-[#ef9a9a]';
-                statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> A ${dist.toFixed(1)} km. Fuera de zona (Máx ${MAX_DISTANCE_KM} km)`;
+                const errMsg = `<span class="text-red-600"><i class="fa-solid fa-circle-xmark"></i> Fuera de zona (Máx ${MAX_DISTANCE_KM}km).</span> Estás a ${dist.toFixed(1)} km.`;
+                fullscreenStatus.innerHTML = errMsg;
+                cartStatus.innerHTML = `<span class="text-red-600"><i class="fa-solid fa-circle-xmark"></i> Fuera de zona</span>`;
+                confirmBtn.disabled = true;
+                confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                window.deliveryValid = false;
             }
-        }
+        };
 
-        function sendToWhatsApp() {
+        /* --- WHATSAPP LOGIC --- */
+        window.sendToWhatsApp = function() {
             if (cart.length === 0) {
-                document.getElementById('cart-warning').classList.remove('hidden');
+                showCartWarning("Agrega al menos un producto a tu orden.");
                 return;
-            }
-
-            const orderTypeSelect = document.getElementById('order-type');
-            const selectedOrderValue = orderTypeSelect.value;
-
-            if (selectedOrderValue === 'Envío a domicilio' && !deliveryValid) {
-                showToast("Tu dirección está fuera de la zona de entrega (máx 5 km).");
-                return;
-            }
-
-            const hasFridayOnly = cart.some(item => {
-                const menuItem = allMenuItems[item.id];
-                return menuItem && menuItem.onlyFriday;
-            });
-
-            if (hasFridayOnly) {
-                if (storeOpen) {
-                    const now = getNow();
-                    if (now.dow !== 5) { // 5 es Viernes
-                        showToast("Las órdenes son exclusivas de los Viernes.");
-                        document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ¡Hola! Te recordamos que las órdenes de 5 tacos son exclusivas de los Viernes. Para pedir hoy, por favor quítalas de tu carrito.`;
-                        document.getElementById('cart-warning').classList.remove('hidden');
-                        return;
-                    }
-                } else {
-                    const day = document.getElementById('reserve-day').value;
-                    if (!day.startsWith('Viernes')) {
-                        showToast("Aparta las órdenes para un Viernes.");
-                        document.getElementById('cart-warning').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas.`;
-                        document.getElementById('cart-warning').classList.remove('hidden');
-                        return;
-                    }
-                }
             }
 
             updateStatus();
+            const now = getNow();
+            const orderType = document.getElementById('order-type').value;
 
-            const paymentSelect = document.getElementById('payment-method');
-            const selectedPaymentValue = paymentSelect.value;
+            // Validación de viernes y mapa
+            const hasFridayItem = cart.some(item => allMenuItems[item.id]?.onlyFriday);
+            
+            if (hasFridayItem) {
+                if (storeOpen && now.dow !== 5) {
+                    showCartWarning("¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas o quítalas de tu orden.");
+                    return;
+                } else if (!storeOpen) {
+                    const reserveDay = document.getElementById('reserve-day').value;
+                    if (!reserveDay.includes("Viernes")) {
+                        showCartWarning("¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, cambia el día de tu apartado a un Viernes.");
+                        return;
+                    }
+                }
+            }
 
+            if (orderType === "Envío a domicilio" && !window.deliveryValid) {
+                showCartWarning("Por favor, selecciona una ubicación válida de entrega (máx 6km) abriendo el mapa.");
+                return;
+            }
+
+            const selectedPaymentValue = document.getElementById('payment-method').value;
             let message = "*¡Hola PA'TAQUEARTE!*\n";
+            
             if (storeOpen) {
                 message += "Me gustaría hacer el siguiente pedido:\n\n";
             } else {
                 const day = document.getElementById('reserve-day').value;
                 const time = document.getElementById('reserve-time').value;
-                
-                // Adaptar el verbo de acuerdo a la elección del usuario
                 let actionText = "disfrutarlo";
-                if (selectedOrderValue === "Comer en el local") actionText = "comer en el local";
-                if (selectedOrderValue === "Pasar a recoger") actionText = "pasar a recogerlo";
-                if (selectedOrderValue === "Envío a domicilio") actionText = "recibirlo en mi domicilio";
-
+                if (orderType === "Comer en el local") actionText = "comer en el local";
+                if (orderType === "Pasar a recoger") actionText = "pasar a recogerlo";
+                if (orderType === "Envío a domicilio") actionText = "recibirlo en mi domicilio";
                 message += `Quiero *APARTAR* el siguiente pedido para ${actionText} el *${day}* a las *${time}*:\n\n`;
             }
-            let hasCombinado = false;
 
+            let hasCombinado = false;
             cart.forEach(item => {
-                // Usamos un guión normal en lugar del cuadrado para evitar errores de compatibilidad
                 message += `- ${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}\n`;
                 if (item.toppings && item.toppings.length > 0) {
-                    message += `  > *Con:* ${item.toppings.join(', ')}\n`;
+                    message += `   > Con: ${item.toppings.join(', ')}\n`;
                 }
                 if (item.id === 'a-combinado') hasCombinado = true;
             });
 
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             message += `\n*Total a pagar: $${total.toFixed(2)}*\n`;
-            
-            // Usamos solo el valor (sin emojis) para que WhatsApp no muestre símbolos raros "?"
-            message += `*Tipo de pedido:* ${selectedOrderValue}\n`;
+            message += `*Tipo de pedido:* ${orderType}\n`;
             message += `*Método de pago:* ${selectedPaymentValue}\n\n`;
 
-            if (selectedOrderValue === 'Envío a domicilio' && userCoords) {
-                message += `📍 *Ubicación de entrega (Google Maps):*\nhttps://www.google.com/maps?q=${userCoords.lat},${userCoords.lng}\n\n`;
+            if (orderType === "Envío a domicilio" && window.userCoords) {
+                message += `*Ubicación de entrega:*\nhttps://www.google.com/maps/search/?api=1&query=${window.userCoords.lat},${window.userCoords.lng}\n\n`;
             }
 
-            if (hasCombinado) {
-                message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
-            }
+            if (hasCombinado) message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
 
-            message += storeOpen
-                ? "Quedo en espera de la confirmación. ¡Gracias!"
-                : "Quedo en espera de la confirmación de mi apartado. ¡Gracias!";
-
+            message += storeOpen ? "Quedo en espera de la confirmación. ¡Gracias!" : "Quedo en espera de la confirmación de mi apartado. ¡Gracias!";
             window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
@@ -973,12 +928,8 @@
             
             setTimeout(() => {
                 const popup = document.getElementById('payment-popup');
-                if(popup) {
-                    popup.classList.add('show');
-                    setTimeout(() => {
-                        popup.classList.remove('show');
-                    }, 7000);
-                }
+                popup.classList.add('show');
+                setTimeout(() => popup.classList.remove('show'), 7000);
             }, 800);
         };
     </script>
