@@ -76,6 +76,12 @@
 
         .map-fullscreen { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .map-fullscreen.open { transform: translateY(0); }
+
+        /* Drawer transition */
+        .drawer-content { transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; max-height: 450px; opacity: 1; overflow: hidden; }
+        .drawer-content.collapsed { max-height: 0px; opacity: 0; pointer-events: none; }
+        .drawer-icon { transition: transform 0.3s ease; }
+        .drawer-icon.rotated { transform: rotate(180deg); }
     </style>
 </head>
 <body class="antialiased pb-20 text-xs sm:text-sm">
@@ -136,7 +142,7 @@
                 </div>
                 
                 <div id="modal-friday-warning" class="hidden bg-orange-50 border border-orange-200 p-2 rounded-lg text-terra text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Las órdenes de 5 tacos son exclusivas de los días Viernes.
+                    <i class="fa-solid fa-triangle-exclamation"></i> ¡Hola! Las órdenes de 5 tacos son exclusivas de los Viernes. Por favor, selecciona un Viernes para poder apartarlas.
                 </div>
 
                 <div class="bg-corn/70 p-2.5 rounded-lg border border-amber-200 shadow-xs">
@@ -152,7 +158,7 @@
                         <h4 class="font-bold text-agave text-xs sm:text-sm flex items-center gap-1">
                             <i class="fa-solid fa-leaf text-green-600"></i> ¿Qué le ponemos?
                         </h4>
-                        <button onclick="toggleSelectAllToppings()" class="text-[10px] bg-corn text-terra font-bold px-2 py-1.5 rounded border border-terra/30 hover:bg-terra hover:text-white transition-colors shadow-sm">
+                        <button type="button" onclick="window.toggleSelectAllToppings()" class="text-[10px] bg-corn text-terra font-bold px-2.5 py-1 rounded border border-terra/30 hover:bg-terra hover:text-white transition-colors shadow-sm btn-press">
                             ✨ Con todo
                         </button>
                     </div>
@@ -195,31 +201,33 @@
             </button>
         </div>
 
-        <div class="bg-amber-100/90 border-b border-amber-200 p-2.5 text-[11px] sm:text-xs text-charcoal font-medium shrink-0">
-            <p class="font-bold text-terra mb-0.5 flex items-center gap-1 text-xs">
-                <i class="fa-solid fa-circle-info"></i> Pasos para pedir:
-            </p>
-            <p>1. Revisa tus platillos abajo.</p>
-            <p>2. Si estamos cerrados, elige hora para apartar.</p>
-            <p>3. Envía tu pedido por WhatsApp.</p>
+        <!-- BOTÓN COLLAPSIBLE (DRAWER) PARA OCULTAR/MOSTRAR DETALLES Y PAGOS -->
+        <div class="bg-white border-b border-gray-200 px-3 py-2 flex items-center justify-between shrink-0 shadow-xs">
+            <span class="font-bold text-agave text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders text-terra"></i> Detalles de pedido y pago
+            </span>
+            <button onclick="window.toggleOrderDrawer()" class="w-7 h-7 bg-corn hover:bg-terra hover:text-white rounded-full flex items-center justify-center text-charcoal transition-colors btn-press shadow-xs" title="Minimizar / Expandir configuraciones">
+                <i id="drawer-chevron" class="fa-solid fa-chevron-down drawer-icon text-xs"></i>
+            </button>
         </div>
 
-        <!-- ITEMS CONTAINER CON SCROLLBAR -->
-        <div id="cart-items" class="flex-1 overflow-y-auto cart-scroll p-2.5 space-y-2 bg-corn relative"></div>
-
-        <!-- SECCIÓN DE COBRO (PROTEGIDA AL FONDO) -->
-        <div class="p-3 border-t border-gray-200 bg-white shadow-[0_-8px_16px_-4px_rgba(26,51,38,0.08)] z-10 relative shrink-0">
-            
-            <div id="cart-warning" class="hidden text-terra text-[11px] font-bold mb-2 text-center bg-orange-50 p-2 rounded-lg border border-orange-200 transition-opacity">
-                <!-- JavaScript inyectará el aviso aquí -->
+        <!-- CONTENIDO RETRÁCTIL (INCLUYE PASOS, RESERVA, TIPO DE PEDIDO, MAPA, MÉTODO DE PAGO) -->
+        <div id="order-drawer-content" class="drawer-content cart-scroll overflow-y-auto bg-white/60 p-2.5 space-y-2 border-b border-gray-200 shrink-0">
+            <div class="bg-amber-100/90 border border-amber-200 p-2 text-[11px] text-charcoal font-medium rounded-lg">
+                <p class="font-bold text-terra mb-0.5 flex items-center gap-1 text-xs">
+                    <i class="fa-solid fa-circle-info"></i> Pasos para pedir:
+                </p>
+                <p>1. Revisa tus platillos abajo.</p>
+                <p>2. Si estamos cerrados, elige hora para apartar.</p>
+                <p>3. Envía tu pedido por WhatsApp.</p>
             </div>
 
-            <div id="reserve-box" class="hidden mb-2.5 bg-orange-50 border border-orange-200 rounded-lg p-2.5 text-[11px]">
+            <div id="reserve-box" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-2 text-[11px]">
                 <p class="font-bold text-terra mb-1 text-xs flex items-center gap-1">
                     <i class="fa-regular fa-calendar-check"></i> Aparta tu pedido
                 </p>
-                <p class="text-charcoal-light text-[10px] mb-1.5 font-medium">Elige cuándo pasas por él.</p>
-                <div class="grid grid-cols-1 gap-1.5">
+                <p class="text-charcoal-light text-[10px] mb-1 font-medium">Elige cuándo pasas por él.</p>
+                <div class="grid grid-cols-1 gap-1">
                     <label class="font-bold text-charcoal-light text-[10px]">Día de recogida
                         <select id="reserve-day" class="mt-0.5 w-full bg-white border border-gray-300 rounded px-2 py-1 text-[11px] text-charcoal focus:outline-none focus:border-terra font-bold"></select>
                     </label>
@@ -229,37 +237,51 @@
                 </div>
             </div>
 
-            <div class="mb-2 bg-white border border-gray-200 rounded-lg p-2 shadow-sm text-[11px]">
-                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-2 shadow-xs text-[11px]">
+                <p class="font-bold text-agave text-xs mb-1 flex items-center gap-1">
                     <i class="fa-solid fa-bell-concierge text-terra"></i> Tipo de pedido
                 </p>
-                <select id="order-type" onchange="window.handleOrderTypeChange()" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                <select id="order-type" onchange="window.handleOrderTypeChange()" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1 text-[11px] text-charcoal focus:outline-none focus:border-terra font-bold">
                     <option value="Comer en el local">🍽️ Comer en el local</option>
                     <option value="Pasar a recoger">🛍️ Pasar a recoger (Pick-up)</option>
                     <option value="Envío a domicilio">🛵 Envío a domicilio</option>
                 </select>
             </div>
 
-            <!-- BOTÓN DEL MAPA (OCULTO POR DEFECTO) -->
-            <div id="delivery-box" class="hidden mb-2 bg-blue-50 border border-blue-200 rounded-lg p-2 text-[11px]">
-                <p class="font-bold text-blue-800 mb-1.5 text-[11px] flex items-center gap-1">
-                    <i class="fa-solid fa-map-location-dot"></i> Domicilio (Máx 6km)
+            <div id="delivery-box" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-[11px]">
+                <p class="font-bold text-blue-800 mb-1 text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-map-location-dot"></i> Domicilio (Máx 6.5km)
                 </p>
                 <button onclick="window.openMapModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2 rounded-md shadow-sm transition-colors flex items-center justify-center gap-1.5 btn-press">
                     <i class="fa-solid fa-expand"></i> Abrir Mapa en Pantalla Completa
                 </button>
-                <p id="delivery-status-text" class="mt-1.5 font-bold text-center text-[10px] text-gray-500">Ubicación pendiente</p>
+                <p id="delivery-status-text" class="mt-1 font-bold text-center text-[10px] text-gray-500">Ubicación pendiente</p>
             </div>
 
-            <div class="mb-2 bg-white border border-gray-200 rounded-lg p-2 shadow-sm text-[11px]">
-                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-2 shadow-xs text-[11px]">
+                <p class="font-bold text-agave text-xs mb-1 flex items-center gap-1">
                     <i class="fa-solid fa-wallet text-terra"></i> Método de pago
                 </p>
-                <select id="payment-method" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                <select id="payment-method" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1 text-[11px] text-charcoal focus:outline-none focus:border-terra font-bold">
                     <option value="Efectivo">Efectivo</option>
                     <option value="Tarjeta">Tarjeta (Terminal)</option>
                     <option value="Transferencia (SPEI)">Transferencia (SPEI)</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- ITEMS CONTAINER (LISTA DE PLATILLOS CON SU PROPIO SCROLL GENEROZO) -->
+        <div class="flex-1 overflow-y-auto cart-scroll p-2.5 space-y-2 bg-corn relative">
+            <div class="text-[11px] font-black text-agave uppercase tracking-wide px-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-utensils text-terra"></i> Platillos en tu orden:
+            </div>
+            <div id="cart-items" class="space-y-2"></div>
+        </div>
+
+        <!-- SECCIÓN DE COBRO AL FONDO (FIJA) -->
+        <div class="p-3 border-t border-gray-200 bg-white shadow-[0_-8px_16px_-4px_rgba(26,51,38,0.08)] z-10 relative shrink-0">
+            <div id="cart-warning" class="hidden text-terra text-[11px] font-bold mb-2 text-center bg-orange-50 p-2 rounded-lg border border-orange-200 transition-opacity">
+                <!-- Advertencia temporal -->
             </div>
 
             <div class="flex justify-between items-end mb-2 pt-0.5">
@@ -279,7 +301,7 @@
                 <h3 class="font-black text-base flex items-center gap-2">
                     <i class="fa-solid fa-map-location-dot text-terra"></i> Confirma tu ubicación
                 </h3>
-                <p class="text-[10px] text-corn/80 mt-0.5">Área de entrega máxima: 6 kilómetros</p>
+                <p class="text-[10px] text-corn/80 mt-0.5">Área de entrega máxima: 6.5 kilómetros</p>
             </div>
             <button onclick="window.closeMapModal()" class="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -336,7 +358,7 @@
         const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
         const TAQUERIA_COORDS = { lat: 19.31863, lng: -98.91212 };
-        const MAX_DISTANCE_KM = 6;
+        const MAX_DISTANCE_KM = 6.5;
         
         let storeOpen = true;
         let lastSlotsKey = '';
@@ -354,7 +376,14 @@
         const baseToppingsList = ["Cilantro", "Cebolla", "Limón", "Salsa Verde", "Salsa Roja"];
         const extraToppingsList = ["Papa", "Nopales"];
 
-        // Helper time functions
+        // Drawer Collapsible state
+        window.toggleOrderDrawer = function() {
+            const content = document.getElementById('order-drawer-content');
+            const chevron = document.getElementById('drawer-chevron');
+            content.classList.toggle('collapsed');
+            chevron.classList.toggle('rotated');
+        };
+
         function getNow() {
             const parts = new Intl.DateTimeFormat('en-US', {
                 timeZone: TIMEZONE, weekday: 'short', year: 'numeric', month: 'numeric',
@@ -431,7 +460,6 @@
             }
         }
 
-        /* Menu Data Logic */
         const IMG_PATH = 'img/';
         const imgSrc = filename => `${IMG_PATH}${filename}.jpeg`;
 
@@ -535,7 +563,7 @@
             });
         }
 
-        // Toppings System
+        // Toppings System with Toggle for "Con todo"
         window.toggleTopping = function(topping) {
             if (currentToppings.includes(topping)) {
                 currentToppings = currentToppings.filter(t => t !== topping);
@@ -546,7 +574,6 @@
         };
 
         window.toggleSelectAllToppings = function() {
-            // Si ya están todos seleccionados, los deselecciona todos. Si falta alguno, los selecciona todos.
             if (currentToppings.length === currentAvailableToppings.length) {
                 currentToppings = [];
             } else {
@@ -580,7 +607,6 @@
             imgEl.src = imgSrc(item.image);
             imgEl.onerror = function() { this.src = 'https://placehold.co/400x300/1A3326/fdf8e7?text=PATAQUEARTE'; };
 
-            // Logic for Friday only
             const warningEl = document.getElementById('modal-friday-warning');
             const addBtn = document.getElementById('modal-add-btn');
             const now = getNow();
@@ -600,7 +626,6 @@
                 addBtn.innerHTML = '<i class="fa-solid fa-cart-plus text-xs"></i> Agregar a mi orden';
             }
 
-            // Logic for Toppings
             const isBeverage = item.id.startsWith('b-');
             const isTacoOrOrden = item.id.startsWith('t-') || item.id.startsWith('o-');
             const toppingsSection = document.getElementById('toppings-section');
@@ -611,7 +636,6 @@
             } else {
                 toppingsSection.classList.remove('hidden');
                 currentAvailableToppings = isTacoOrOrden ? [...baseToppingsList, ...extraToppingsList] : [...baseToppingsList];
-                // Iniciar vacíos por defecto (ninguno seleccionado al abrir)
                 currentToppings = [];
                 renderToppingsUI();
             }
@@ -672,12 +696,12 @@
             const cartItemsContainer = document.getElementById('cart-items');
             if (cart.length === 0) {
                 cartItemsContainer.innerHTML = `
-                    <div class="text-center py-8 flex flex-col items-center justify-center h-full opacity-75">
-                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-xs border border-gray-200">
-                            <i class="fa-solid fa-basket-shopping text-xl text-gray-300"></i>
+                    <div class="text-center py-6 flex flex-col items-center justify-center h-full opacity-75">
+                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-1.5 shadow-xs border border-gray-200">
+                            <i class="fa-solid fa-basket-shopping text-base text-gray-300"></i>
                         </div>
-                        <p class="font-black text-charcoal text-sm">Tu orden está vacía</p>
-                        <p class="text-[11px] mt-0.5 text-charcoal-light font-medium">Toca cualquier platillo para agregarlo</p>
+                        <p class="font-black text-charcoal text-xs">Tu orden está vacía</p>
+                        <p class="text-[10px] mt-0.5 text-charcoal-light font-medium">Toca cualquier platillo para agregarlo</p>
                     </div>`;
             } else {
                 cartItemsContainer.innerHTML = cart.map((item, index) => {
@@ -686,18 +710,18 @@
                         : '';
                     
                     return `
-                    <div class="bg-white p-2.5 rounded-lg shadow-xs border border-gray-200 flex justify-between items-center transition-all">
+                    <div class="bg-white p-2 rounded-lg shadow-xs border border-gray-200 flex justify-between items-center transition-all">
                         <div class="flex-1 pr-2 min-w-0">
-                            <h5 class="font-black text-charcoal text-xs sm:text-sm leading-tight truncate">${item.name}</h5>
+                            <h5 class="font-black text-charcoal text-xs leading-tight truncate">${item.name}</h5>
                             ${toppingsText}
-                            <p class="text-terra font-black mt-0.5 text-xs sm:text-sm">$${(item.price * item.quantity).toFixed(2)}</p>
+                            <p class="text-terra font-black mt-0.5 text-xs">$${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                         <div class="flex items-center gap-1 bg-corn rounded-lg p-1 border border-gray-300 shadow-xs shrink-0">
-                            <button onclick="window.updateQuantity(${index}, -1)" class="btn-press w-7 h-7 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition">
+                            <button onclick="window.updateQuantity(${index}, -1)" class="btn-press w-6 h-6 bg-white flex items-center justify-center text-charcoal hover:text-terra rounded shadow-xs font-black text-xs transition">
                                 <i class="fa-solid fa-minus"></i>
                             </button>
-                            <span class="w-5 text-center font-black text-xs text-charcoal">${item.quantity}</span>
-                            <button onclick="window.updateQuantity(${index}, 1)" class="btn-press w-7 h-7 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition">
+                            <span class="w-4 text-center font-black text-xs text-charcoal">${item.quantity}</span>
+                            <button onclick="window.updateQuantity(${index}, 1)" class="btn-press w-6 h-6 bg-terra text-white flex items-center justify-center rounded shadow-xs font-black text-xs hover:bg-terra-hover transition">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
@@ -730,7 +754,6 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // Temporary 5-second cart warning
         let cartWarningTimeout;
         function showCartWarning(msg) {
             const warningBox = document.getElementById('cart-warning');
@@ -860,7 +883,6 @@
             const now = getNow();
             const orderType = document.getElementById('order-type').value;
 
-            // Validación de viernes y mapa
             const hasFridayItem = cart.some(item => allMenuItems[item.id]?.onlyFriday);
             
             if (hasFridayItem) {
@@ -877,7 +899,7 @@
             }
 
             if (orderType === "Envío a domicilio" && !window.deliveryValid) {
-                showCartWarning("Por favor, selecciona una ubicación válida de entrega (máx 6km) abriendo el mapa.");
+                showCartWarning("Por favor, selecciona una ubicación válida de entrega (máx 6.5km) abriendo el mapa.");
                 return;
             }
 
