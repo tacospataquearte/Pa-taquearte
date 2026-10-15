@@ -8,6 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Librería para el Mapa Interactivo -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         tailwind.config = {
@@ -210,11 +214,25 @@
                 <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
                     <i class="fa-solid fa-bell-concierge text-terra"></i> Tipo de pedido
                 </p>
-                <select id="order-type" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
+                <select id="order-type" onchange="handleOrderTypeChange()" class="w-full bg-gray-50 border border-gray-300 rounded px-2 py-1.5 text-[11px] sm:text-xs text-charcoal focus:outline-none focus:border-terra font-bold">
                     <option value="Comer en el local">🍽️ Comer en el local</option>
                     <option value="Pasar a recoger">🛍️ Pasar a recoger (Pick-up)</option>
                     <option value="Envío a domicilio">🛵 Envío a domicilio</option>
                 </select>
+            </div>
+
+            <div id="delivery-box" class="hidden mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
+                <p class="font-bold text-agave text-xs mb-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-map-location-dot text-terra"></i> Tu ubicación de entrega
+                </p>
+                <p class="text-charcoal-light text-[10px] mb-2 font-medium">Usa tu ubicación actual o mueve el marcador azul a tu domicilio (área máx. 5 km).</p>
+                <button onclick="requestUserLocation()" class="mb-2 w-full bg-gray-100 hover:bg-gray-200 border border-gray-300 text-charcoal font-bold py-1.5 px-2 rounded-lg text-[10px] transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-location-crosshairs"></i> Usar mi ubicación actual
+                </button>
+                <div id="map" class="w-full h-40 rounded border border-gray-300 shadow-inner z-0" style="z-index: 10;"></div>
+                <div id="delivery-status" class="mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-gray-100 text-gray-600 transition-colors">
+                    Mueve el mapa para validar zona...
+                </div>
             </div>
 
             <div class="mb-2.5 bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm text-[11px]">
@@ -753,9 +771,119 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
+        const TAQUERIA_COORDS = { lat: 19.31863, lng: -98.91212 }; // Cerro del Tejolote, Ixtapaluca
+        const MAX_DISTANCE_KM = 5;
+        let map, marker, userCoords = null, deliveryValid = true;
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la Tierra
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function handleOrderTypeChange() {
+            const type = document.getElementById('order-type').value;
+            const deliveryBox = document.getElementById('delivery-box');
+            if (type === 'Envío a domicilio') {
+                deliveryBox.classList.remove('hidden');
+                if (!map) {
+                    setTimeout(initMap, 300); // Esperar a que el panel se abra
+                } else {
+                    map.invalidateSize();
+                }
+                if(userCoords) checkDeliveryStatus();
+            } else {
+                deliveryBox.classList.add('hidden');
+                deliveryValid = true; 
+            }
+        }
+
+        function initMap() {
+            map = L.map('map').setView([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OSM'
+            }).addTo(map);
+
+            // Marcador de la Taquería
+            L.circleMarker([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], {
+                color: '#1A3326', fillColor: '#1A3326', fillOpacity: 1, radius: 5
+            }).addTo(map).bindPopup("<b>PA'TAQUEARTE</b><br>Loma Chica 14A").openPopup();
+
+            // Círculo de cobertura
+            L.circle([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], {
+                color: '#cc5500', fillColor: '#cc5500', fillOpacity: 0.1, radius: MAX_DISTANCE_KM * 1000
+            }).addTo(map);
+
+            // Marcador del usuario
+            userCoords = { lat: TAQUERIA_COORDS.lat, lng: TAQUERIA_COORDS.lng };
+            marker = L.marker([TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng], { draggable: true }).addTo(map);
+
+            marker.on('dragend', function (e) {
+                userCoords = marker.getLatLng();
+                checkDeliveryStatus();
+            });
+
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                userCoords = e.latlng;
+                checkDeliveryStatus();
+            });
+
+            checkDeliveryStatus();
+        }
+        
+        function requestUserLocation() {
+            if ("geolocation" in navigator) {
+                showToast("Buscando tu ubicación...");
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    if(map && marker) {
+                        userCoords = { lat, lng };
+                        marker.setLatLng([lat, lng]);
+                        map.setView([lat, lng], 15);
+                        checkDeliveryStatus();
+                        showToast("¡Ubicación encontrada!");
+                    }
+                }, function(err) {
+                    showToast("No pudimos obtener tu ubicación. Mueve el marcador.");
+                });
+            } else {
+                showToast("Geolocalización no soportada por el navegador.");
+            }
+        }
+
+        function checkDeliveryStatus() {
+            if (!userCoords) return;
+            const dist = calculateDistance(TAQUERIA_COORDS.lat, TAQUERIA_COORDS.lng, userCoords.lat, userCoords.lng);
+            const statusBox = document.getElementById('delivery-status');
+
+            if (dist <= MAX_DISTANCE_KM) {
+                deliveryValid = true;
+                statusBox.className = 'mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-[#e8f5e9] text-[#2e7d32] border border-[#a5d6a7]';
+                statusBox.innerHTML = `<i class="fa-solid fa-check-circle"></i> A ${dist.toFixed(1)} km. ¡Estás dentro de la zona!`;
+            } else {
+                deliveryValid = false;
+                statusBox.className = 'mt-2 text-center text-[10px] font-bold p-1.5 rounded bg-[#ffebee] text-[#c62828] border border-[#ef9a9a]';
+                statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> A ${dist.toFixed(1)} km. Fuera de zona (Máx ${MAX_DISTANCE_KM} km)`;
+            }
+        }
+
         function sendToWhatsApp() {
             if (cart.length === 0) {
                 document.getElementById('cart-warning').classList.remove('hidden');
+                return;
+            }
+
+            const orderTypeSelect = document.getElementById('order-type');
+            const selectedOrderValue = orderTypeSelect.value;
+
+            if (selectedOrderValue === 'Envío a domicilio' && !deliveryValid) {
+                showToast("Tu dirección está fuera de la zona de entrega (máx 5 km).");
                 return;
             }
 
@@ -785,9 +913,6 @@
             }
 
             updateStatus();
-
-            const orderTypeSelect = document.getElementById('order-type');
-            const selectedOrderValue = orderTypeSelect.value;
 
             const paymentSelect = document.getElementById('payment-method');
             const selectedPaymentValue = paymentSelect.value;
@@ -824,6 +949,10 @@
             // Usamos solo el valor (sin emojis) para que WhatsApp no muestre símbolos raros "?"
             message += `*Tipo de pedido:* ${selectedOrderValue}\n`;
             message += `*Método de pago:* ${selectedPaymentValue}\n\n`;
+
+            if (selectedOrderValue === 'Envío a domicilio' && userCoords) {
+                message += `📍 *Ubicación de entrega (Google Maps):*\nhttps://www.google.com/maps?q=${userCoords.lat},${userCoords.lng}\n\n`;
+            }
 
             if (hasCombinado) {
                 message += "⚠️ *Nota para mi Alambre Combinado:* (Escribe aquí tus carnes)\n\n";
