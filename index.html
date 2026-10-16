@@ -540,7 +540,7 @@
                         ${item.onlyFriday ? `<div class="absolute top-0 left-0 bg-terra text-white text-[9px] font-black px-1.5 py-0.5 rounded-br-lg shadow-sm z-20 uppercase"><i class="fa-solid fa-calendar-day"></i> Solo Viernes</div>` : ''}
                         
                         <div class="w-16 h-16 sm:w-20 sm:h-20 bg-corn rounded-lg flex items-center justify-center shrink-0 border border-gray-200 z-10 overflow-hidden shadow-xs mt-1">
-                            <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-[10px] font-bold p-1 text-center', innerText: 'PA\\'TAQUEARTE'}))">
+                            <img src="${imgSrc(item.image)}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='img/chescos.jpg'; this.onerror=function(){this.replaceWith(Object.assign(document.createElement('div'), {className: 'w-full h-full bg-agave/10 flex items-center justify-center text-agave text-[10px] font-bold p-1 text-center', innerText: 'PA\\'TAQUEARTE'}))}">
                         </div>
                         <div class="flex-1 flex flex-col justify-between z-10 min-w-0 mt-1">
                             <div>
@@ -610,7 +610,13 @@
             
             const imgEl = document.getElementById('modal-img');
             imgEl.src = imgSrc(item.image);
-            imgEl.onerror = function() { this.src = 'https://placehold.co/400x300/1A3326/fdf8e7?text=PATAQUEARTE'; };
+            imgEl.onerror = function() { 
+                this.onerror = null; 
+                this.src = 'img/chescos.jpg';
+                this.onerror = function() {
+                    this.src = 'https://placehold.co/400x300/1A3326/fdf8e7?text=PATAQUEARTE';
+                };
+            };
 
             const warningEl = document.getElementById('modal-friday-warning');
             const addBtn = document.getElementById('modal-add-btn');
